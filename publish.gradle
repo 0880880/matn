@@ -1,0 +1,131 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+ext.artifact = 'matn'
+ext.packaging = 'jar'
+
+def isDevBuild
+def isCiBuild
+def isReleaseBuild
+
+def sonatypeRepositoryUrl
+
+//set build variables based on build type (release, continuous integration, development)
+if (hasProperty("RELEASE")) {
+    isReleaseBuild = true
+    sonatypeRepositoryUrl = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+    println "Performing release build"
+} else if (hasProperty("SNAPSHOT")) {
+    isCiBuild = true
+    version += "-SNAPSHOT"
+    sonatypeRepositoryUrl = "https://central.sonatype.com/repository/maven-snapshots/"
+    println "Performing snapshot build"
+} else {
+    version += "-LOCAL"
+    isDevBuild = true
+    println "Performing local build"
+}
+
+def getRepositoryUsername = {
+    return project.hasProperty('NEXUS_USERNAME') ? NEXUS_USERNAME : "$System.env.NEXUS_USERNAME"
+}
+
+def getRepositoryPassword = {
+    return project.hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : "$System.env.NEXUS_PASSWORD"
+}
+
+repositories {
+    mavenCentral()
+}
+
+if (isReleaseBuild) {
+    signing {
+        useGpgCmd()
+        sign publishing.publications
+    }
+} else {
+    task signArchives {
+        // do nothing
+    }
+}
+
+artifacts {
+    def packageTasks = [
+            tasks.named("jnigenPackageAllAndroid"),
+            tasks.named("jnigenPackageAllIOS"),
+            tasks.named("jnigenPackageAllDesktop")
+    ]
+
+    packageTasks.each { packageTask ->
+        packageTask.get().outputs.files.each { file ->
+            archives(file) {
+                builtBy packageTask
+            }
+        }
+    }
+}
+
+def configurePom = { pom ->
+    pom.with {
+        name = "Matn extension for libGDX"
+        description = "Font rasterization and text shaping for libGDX."
+        url = "https://github.com/rednblackgames/gdx-miniaudio"
+        licenses {
+            license {
+                name = "The Apache Software License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution = "repo"
+            }
+        }
+        developers {
+            developer {
+                id = "0880880"
+                name = "0880"
+                email = "98263509+0880880@users.noreply.github.com"
+            }
+        }
+        scm {
+            connection = "scm:git@github.com:0880880/matn.git"
+            developerConnection = "scm:git@github.com:0880880/matn.git"
+            url = "scm:git@github.com:0880880/matn.git"
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+
+            artifactId = artifact
+            pom(configurePom)
+        }
+
+        matching { it.name == 'jniPlatform' }.configureEach {
+            if (it instanceof MavenPublication) {
+                it.pom(configurePom)
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = sonatypeRepositoryUrl
+
+            if (getRepositoryUsername() || getRepositoryPassword()) {
+                credentials {
+                    username = getRepositoryUsername()
+                    password = getRepositoryPassword()
+                }
+            }
+        }
+    }
+}

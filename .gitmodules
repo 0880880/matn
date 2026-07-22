@@ -1,0 +1,6 @@
+[submodule "jni/harfbuzz"]
+	path = jni/harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz.git
+[submodule "jni/SheenBidi"]
+	path = jni/SheenBidi
+	url = https://github.com/Tehreer/SheenBidi.git

@@ -1,0 +1,126 @@
+buildscript {
+    repositories {
+        maven { url 'https://jitpack.io' }
+        mavenCentral()
+        gradlePluginPortal()
+        mavenLocal()
+        google()
+        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
+    }
+    dependencies {
+        classpath "com.badlogicgames.jnigen:jnigen-gradle:$jniGenVersion"
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+apply plugin: "com.badlogicgames.jnigen.jnigen-gradle"
+
+group 'com.github.zeroeighteightzero.matn'
+version '0.1'
+
+repositories {
+    maven { url 'https://jitpack.io' }
+    maven { url "https://central.sonatype.com/repository/maven-snapshots/" }
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation "com.github.tommyettinger:regexodus:$regexodusVersion"
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.jnigen:jnigen-loader:$jniGenVersion"
+    implementation "com.badlogicgames.jnigen:jnigen-runtime:$jniGenVersion"
+    implementation("com.badlogicgames.jnigen:jnigen-runtime-platform:${jniGenVersion}:natives-desktop")
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+
+    testImplementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    testImplementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    testRuntimeOnly(files("build/jnigen/libs/matn-natives-desktop.jar"))
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+task dist(type: Jar) {
+    from files(sourceSets.main.output.classesDirs)
+    from files(sourceSets.main.output.resourcesDir)
+}
+
+tasks.withType(JavaCompile) {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.compilerArgs += ["--release", "8"]
+    }
+}
+
+jnigen {
+    sharedLibName = "matn"
+
+    generator {
+        outputPath = file("src/main/java")
+        basePackage = "com.github.zeroeighteightzero.matn._native"
+        fileToParse = "matn.h"
+        options = [
+                "-Ijni/matn/include",
+                "-Ijni/SheenBidi/Headers",
+                "-Ijni/harfbuzz/src",
+                "-Ijni/harfbuzz-config",
+        ]
+    }
+
+    all {
+        headerDirs += [
+                "jni/harfbuzz-config",
+                "jni/harfbuzz/src",
+                "jni/SheenBidi/Headers",
+                "jni/SheenBidi/Source",
+                "jni/matn/include"
+        ]
+
+        cIncludes = ["jni/SheenBidi/Source/SheenBidi.c"]
+
+        cppIncludes = [
+                "jni/harfbuzz/src/harfbuzz-world.cc",
+                "jni/matn/src/matn.cpp",
+        ]
+
+        cExcludes = [
+                "jni/harfbuzz/subprojects/",
+        ]
+
+        cppExcludes = [
+                "jni/harfbuzz/subprojects/",
+        ]
+
+        cFlags += ["-DHAVE_CONFIG_H", "-fvisibility=hidden", "-DSB_CONFIG_UNITY"]
+        cppFlags += ["-DHAVE_CONFIG_H", "-std=c++14", "-fno-threadsafe-statics", "-fvisibility-inlines-hidden", "-fvisibility=hidden"]
+    }
+
+    addWindows(x32, x86, GCC_CLANG)
+    addWindows(x64, x86, GCC_CLANG)
+
+    addLinux(x64, x86)
+    addLinux(x32, ARM)
+    addLinux(x64, ARM)
+    addLinux(x64, RISCV)
+
+    addMac(x64, x86)
+    addMac(x64, ARM)
+    addIOS()
+
+    robovm {
+        minIOSVersion = "15.0"
+    }
+
+    addAndroid()
+}
+
+apply from: 'publish.gradle'
