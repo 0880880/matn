@@ -47,11 +47,6 @@ public class GlyphAtlas implements Disposable {
         public Page(int pageSize, Pixmap.Format format) {
             this.format = format;
             texture = new Texture(pageSize, pageSize, format);
-
-            Pixmap something = new Pixmap(14, 44, format);
-            something.setColor(0, 1, 0, 1);
-            something.fill();
-            texture.draw(something, 0, 0);
         }
 
         void place(Pixmap pixmap, int x, int y) {
