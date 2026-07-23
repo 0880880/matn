@@ -8,6 +8,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -27,7 +28,7 @@ public class Main implements ApplicationListener {
     ScreenViewport viewport;
     GPUTextBatch gpuBatch;
 
-    GPUGlyphAtlas gpuAtlas;
+    GlyphAtlas atlas;
 
     Font[] fonts;
     Layout[] layouts;
@@ -56,10 +57,10 @@ public class Main implements ApplicationListener {
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
 
-        Typeface face = Typeface.fromFile(Gdx.files.internal("Inter/Inter-VariableFont_opsz,wght.ttf"));
-        face.createFont().setSyntheticBold(.01f, .01f, false);
+        atlas = new GlyphAtlas(512, Pixmap.Format.RGBA8888);
 
-        gpuAtlas = new GPUGlyphAtlas();
+        Typeface face = Typeface.fromFile(Gdx.files.internal("Inter/Inter-VariableFont_opsz,wght.ttf"));
+
         gpuBatch = new GPUTextBatch();
 
         int numWeights = 8;
@@ -73,7 +74,7 @@ public class Main implements ApplicationListener {
         for (int i = 0; i < numWeights; i++) {
             float w = weightStart + i * step;
 
-            Font font = face.createFont();
+            Font font = face.createFont(atlas);
             font.opticalSize(face.varAxes[0].max);
             font.weight(w);
             font.applyVariation();
@@ -218,7 +219,7 @@ public class Main implements ApplicationListener {
         for (int i = 0; i < fonts.length; ++i) {
             Font font = fonts[i];
             Layout layout = layouts[i];
-            font.drawGPUText(gpuBatch, gpuAtlas, layout, 32, -32 - font.getLineHeight(fontSize) * i + Gdx.graphics.getHeight() - font.getAscender(fontSize));
+            font.drawGPUText(gpuBatch, layout, 32, -32 - font.getLineHeight(fontSize) * i + Gdx.graphics.getHeight() - font.getAscender(fontSize));
         }
 
         gpuBatch.end();

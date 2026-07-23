@@ -218,7 +218,7 @@ public class GlyphAtlas implements Disposable {
             return gpuGlyphMap.get(hash);
         }
 
-        GPUGlyph glyph = font.encodeGPU(glyphID, this);
+        GPUGlyph glyph = font.encodeGPU(glyphID);
         gpuGlyphMap.put(hash, glyph);
 
         return glyph;

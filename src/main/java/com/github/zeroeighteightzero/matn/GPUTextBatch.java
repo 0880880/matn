@@ -27,7 +27,7 @@ public class GPUTextBatch implements Disposable {
 
     final float[] vertices;
     int idx = 0;
-    GPUGlyphAtlas lastAtlas = null;
+    GlyphAtlas lastAtlas = null;
     GPUGlyph lastGlyph = null;
 
     boolean drawing = false;
@@ -236,7 +236,7 @@ public class GPUTextBatch implements Disposable {
 
         float[] vertices = this.vertices;
 
-        GPUGlyphAtlas atlas = glyph.atlas;
+        GlyphAtlas atlas = glyph.atlas;
         int glyphLoc = glyph.location;
 
         if (atlas != lastAtlas || (lastGlyph != null && glyph.page != lastGlyph.page)) {
@@ -316,7 +316,7 @@ public class GPUTextBatch implements Disposable {
         if (glyphsInBatch > maxGlyphsInBatch) maxGlyphsInBatch = glyphsInBatch;
         int count = glyphsInBatch * 6;
 
-        lastAtlas.bind(lastGlyph);
+        lastAtlas.bindGPU(lastGlyph);
         Mesh mesh = this.mesh;
         mesh.setVertices(vertices, 0, idx);
 

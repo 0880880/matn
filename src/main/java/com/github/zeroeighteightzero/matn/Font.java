@@ -25,8 +25,9 @@ public class Font implements Disposable {
 
     public String name = "Unnamed Font";
 
-    final Typeface face;
-    final MatnFont.MatnFontPointer mtFont;
+    protected final Typeface face;
+    protected final GlyphAtlas atlas;
+    protected final MatnFont.MatnFontPointer mtFont;
 
     private float ascender, descender, lineGap, lineHeight;
 
@@ -64,8 +65,9 @@ public class Font implements Disposable {
         }
     }
 
-    Font(Typeface face) {
+    Font(Typeface face, GlyphAtlas atlas) {
         this.face = face;
+        this.atlas = atlas;
 
         PointerPointer<MatnFont.MatnFontPointer> ptr = new PointerPointer<>(MatnFont.MatnFontPointer::new);
         Matn.matn_typeface_create_font(face.mtFace, ptr);
@@ -267,7 +269,7 @@ public class Font implements Disposable {
         return pixmap;
     }
 
-    public GPUGlyph encodeGPU(long glyphID, GPUGlyphAtlas atlas) {
+    public GPUGlyph encodeGPU(long glyphID) {
         PointerPointer<MatnGPU_Blob.MatnGPU_BlobPointer> ptr = new PointerPointer<>(MatnGPU_Blob.MatnGPU_BlobPointer::new);
         Matn.matn_gpu_draw_glyph(mtFont, glyphID, ptr);
         MatnGPU_Blob.MatnGPU_BlobPointer gpuBlob = ptr.getValue();
@@ -277,7 +279,7 @@ public class Font implements Disposable {
         ByteBuffer dataBuffer = BufferUtils.newByteBuffer((int) length);
         CHandler.memcpy(BufferUtils.getUnsafeBufferAddress(dataBuffer), data.getPointer(), length);
 
-        return atlas.createGlyph(face, gpuBlob.get(), dataBuffer, (int) length);
+        return atlas.createGPUGlyph(face, gpuBlob.get(), dataBuffer, (int) length);
     }
 
     public static String getVertexShader() {
@@ -360,9 +362,9 @@ public class Font implements Disposable {
         Matn.matn_font_set_synthetic_slant(mtFont, slant);
     }
 
-    private Matrix4 mat = new Matrix4();
+    private final Matrix4 mat = new Matrix4();
 
-    public void drawGlyph(Batch batch, GlyphAtlas atlas, long glyphID, float fontSize, float x, float y, float sx, float sy, float rot) {
+    public void drawGlyph(Batch batch, long glyphID, float fontSize, float x, float y, float sx, float sy, float rot) {
         Glyph glyph = atlas.getGlyph(this, glyphID, (int) fontSize);
         float scale = fontSize / glyph.size;
         float width = glyph.width * scale;
@@ -378,14 +380,14 @@ public class Font implements Disposable {
         batch.draw(atlas.pages.get(glyph.page).texture, glyph.bearingX * fontSize, -glyph.height * scale + glyph.bearingY * fontSize, width, height, glyph.u, glyph.v, glyph.u2, glyph.v2);
     }
 
-    public void drawText(Batch batch, GlyphAtlas atlas, Layout layout, float x, float y) {
+    public void drawText(Batch batch, Layout layout, float x, float y) {
         int idx = 0;
         float penX = x;
         float penY = y;
         for (int i = 0; i < layout.lines.size; ++i) {
             Line line = layout.lines.get(i);
             for (int j = 0; j < line.glyphs.size; ++j) {
-                drawGlyph(batch, atlas, line.glyphs.get(j), layout.fontSize, penX + layout.offsets.get(idx * 2), penY + layout.offsets.get(idx * 2 + 1), layout.sizing.get(idx * 2), layout.sizing.get(idx * 2 + 1), layout.rotation.get(idx));
+                drawGlyph(batch, line.glyphs.get(j), layout.fontSize, penX + layout.offsets.get(idx * 2), penY + layout.offsets.get(idx * 2 + 1), layout.sizing.get(idx * 2), layout.sizing.get(idx * 2 + 1), layout.rotation.get(idx));
                 penX += layout.advances.get(idx);
                 ++idx;
             }
@@ -394,27 +396,27 @@ public class Font implements Disposable {
         }
     }
 
-    public void drawGPUGlyph(GPUTextBatch batch, GPUGlyphAtlas atlas, long glyphID, float fontSize, float x, float y) {
-        batch.drawGlyph(atlas.getGlyph(this, glyphID), fontSize, x, y);
+    public void drawGPUGlyph(GPUTextBatch batch, long glyphID, float fontSize, float x, float y) {
+        batch.drawGlyph(atlas.getGPUGlyph(this, glyphID), fontSize, x, y);
     }
 
-    public void drawGPUText(GPUTextBatch batch, GPUGlyphAtlas atlas, Layout layout, float x, float y) {
+    public void drawGPUText(GPUTextBatch batch, Layout layout, float x, float y) {
         int idx = 0;
         for (int i = 0; i < layout.lines.size; ++i) {
             Line line = layout.lines.get(i);
             float penX = 0;
             for (int j = 0; j < line.glyphs.size; ++j) {
-                drawGPUGlyph(batch, atlas, line.glyphs.get(j), layout.fontSize, x + penX + layout.offsets.get(idx * 2), y - i * layout.lineHeight + layout.offsets.get(idx * 2 + 1));
+                drawGPUGlyph(batch, line.glyphs.get(j), layout.fontSize, x + penX + layout.offsets.get(idx * 2), y - i * layout.lineHeight + layout.offsets.get(idx * 2 + 1));
                 penX += layout.advances.get(idx);
                 ++idx;
             }
         }
     }
 
-    public void drawText(Batch batch, GlyphAtlas atlas, String text, float fontSize, float x, float y) {
+    public void drawText(Batch batch, String text, float fontSize, float x, float y) {
         layout.setText(text);
         layout.fontSize(fontSize);
-        drawText(batch, atlas, layout, x, y);
+        drawText(batch, layout, x, y);
     }
 
     @Override

@@ -113,8 +113,8 @@ public class Typeface implements Disposable {
         return fromFile(file, 0);
     }
 
-    public Font createFont() {
-        return new Font(this);
+    public Font createFont(GlyphAtlas atlas) {
+        return new Font(this, atlas);
     }
 
     @Override
