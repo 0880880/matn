@@ -1,11 +1,21 @@
 package com.github.zeroeighteightzero.matn;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.LongMap;
+import com.github.zeroeighteightzero.matn._native.structs.MatnGPU_Blob;
+
+import java.nio.ByteBuffer;
+
+import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL30.GL_RGBA16I;
+import static com.badlogic.gdx.graphics.GL30.GL_RGBA_INTEGER;
+import static com.badlogic.gdx.graphics.GL32.GL_TEXTURE_BUFFER;
 
 /**
  * Texture atlas for font glyphs. Glyphs are packed with true Bottom-Left placement
@@ -60,19 +70,158 @@ public class GlyphAtlas implements Disposable {
 
     }
 
+    public static class GPUPage {
+        protected final IntArray buf = new IntArray(1);
+        protected final int tex;
+        protected int index;
+
+        protected GPUPage(int buf, int tex) {
+            this.buf.add(buf);
+            this.tex = tex;
+        }
+
+        protected GPUPage(int tex) {
+            this.tex = tex;
+        }
+    }
+
     public Array<Page> pages = new Array<>(1);
+    public Array<GPUPage> gpuPages = new Array<>(1);
+    private final LongMap<GPUGlyph> gpuGlyphMap = new LongMap<>();
     public LongMap<Glyph> glyphMap = new LongMap<>();
     public final int pageSize;
     public final Pixmap.Format format;
 
+    private static final int GPU_TEXTURE_WIDTH = 512;
+    private static final int TEXEL_SIZE = 8;
+
+    private final int gpuPageCapacity;
+    private final int gpuPageHeight;
+    private final boolean hasTexBuf;
+
+    private void newGPUPage() {
+        if (hasTexBuf) {
+            int buf = Gdx.gl.glGenBuffer();
+            int tex = Gdx.gl.glGenBuffer();
+
+            Gdx.gl.glBindBuffer(GL_TEXTURE_BUFFER, buf);
+            Gdx.gl.glBufferData(GL_TEXTURE_BUFFER, gpuPageCapacity * 8, null, GL_STATIC_DRAW);
+
+            Gdx.gl.glBindTexture(GL_TEXTURE_BUFFER, tex);
+            Gdx.gl32.glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA16I, buf);
+
+            gpuPages.add(new GPUPage(buf, tex));
+        } else {
+            int tex = Gdx.gl.glGenTexture();
+
+            Gdx.gl.glBindTexture(GL_TEXTURE_2D, tex);
+            Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, GPU_TEXTURE_WIDTH, gpuPageHeight, 0, GL_RGBA_INTEGER, GL_SHORT, null);
+            Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+            gpuPages.add(new GPUPage(tex));
+        }
+    }
+
     public GlyphAtlas(int pageSize, Pixmap.Format format) {
         this.pageSize = pageSize;
         this.format = format;
+        this.gpuPageCapacity = pageSize * pageSize;
         pages.add(new Page(pageSize, format));
+
+        if (Gdx.gl32 != null) {
+            hasTexBuf = true;
+            gpuPageHeight = 0;
+        } else {
+            hasTexBuf = false;
+            gpuPageHeight = MathUtils.ceil((gpuPageCapacity + (GPU_TEXTURE_WIDTH - 1)) / ((float) GPU_TEXTURE_WIDTH));
+        }
     }
 
     public GlyphAtlas(int pageSize) {
         this(pageSize, Pixmap.Format.RGBA8888);
+    }
+
+    public void bindGPU(GPUGlyph glyph) {
+        if (hasTexBuf) {
+            Gdx.gl.glBindBuffer(GL_TEXTURE_BUFFER, gpuPages.get(glyph.page).buf.get(0));
+        } else {
+            Gdx.gl.glBindTexture(GL_TEXTURE_2D, gpuPages.get(glyph.page).tex);
+        }
+    }
+
+    GPUGlyph createGPUGlyph(Typeface face, MatnGPU_Blob blob, ByteBuffer data, int length) {
+
+        for (int i = 0; i <= gpuPages.size; i++) {
+
+            if (i == gpuPages.size) {
+                newGPUPage();
+            }
+
+            GPUPage page = gpuPages.get(i);
+
+            if (page.index * TEXEL_SIZE + length > gpuPageCapacity * 8) {
+                continue;
+            }
+
+            GPUGlyph glyph = new GPUGlyph(
+                    this,
+                    (float) face.upem,
+                    page.index,
+                    blob.min_x(),
+                    blob.min_y(),
+                    blob.max_x(),
+                    blob.max_y(),
+                    length / TEXEL_SIZE,
+                    i
+            );
+
+            if (hasTexBuf) {
+                data.position(0);
+                Gdx.gl.glBufferSubData(GL_TEXTURE_BUFFER, page.index * TEXEL_SIZE, 0, data); // size ignored
+                page.index += glyph.length;
+            } else {
+                Gdx.gl.glBindTexture(GL_TEXTURE_2D, page.tex);
+                data.position(0);
+                int remaining = glyph.length;
+                int srcOffset = 0;
+                int dstOffset = page.index;
+                while (remaining > 0) {
+                    int x = dstOffset % GPU_TEXTURE_WIDTH;
+                    int y = dstOffset / GPU_TEXTURE_WIDTH;
+                    int rowCount = GPU_TEXTURE_WIDTH - x;
+                    if (rowCount > remaining)
+                        rowCount = remaining;
+                    data.position(srcOffset * TEXEL_SIZE);
+                    Gdx.gl.glTexSubImage2D(GL_TEXTURE_2D, 0,
+                            x, y, rowCount, 1,
+                            GL_RGBA_INTEGER, GL_SHORT,
+                            data);
+                    srcOffset += rowCount;
+                    dstOffset += rowCount;
+                    remaining -= rowCount;
+                }
+                page.index = dstOffset;
+            }
+
+            return glyph;
+        }
+
+        throw new RuntimeException("No more space available for glyph");
+
+    }
+
+    public GPUGlyph getGPUGlyph(Font font, long glyphID) {
+        long hash = Utils.glyphHash(font, glyphID);
+
+        if (gpuGlyphMap.containsKey(hash)) {
+            return gpuGlyphMap.get(hash);
+        }
+
+        GPUGlyph glyph = font.encodeGPU(glyphID, this);
+        gpuGlyphMap.put(hash, glyph);
+
+        return glyph;
     }
 
     public Glyph getGlyph(Font font, long glyphID, int size) {
@@ -223,7 +372,12 @@ public class GlyphAtlas implements Disposable {
         for (Page page : pages) {
             page.texture.dispose();
         }
-        pages.clear();
-        glyphMap.clear();
+        for (int i = 0; i < gpuPages.size; ++i) {
+            GPUPage page = gpuPages.get(i);
+            if (hasTexBuf) {
+                Gdx.gl.glDeleteBuffer(page.buf.get(0));
+            }
+            Gdx.gl.glDeleteTexture(page.tex);
+        }
     }
 }
