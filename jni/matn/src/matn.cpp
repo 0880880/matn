@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
-#include <mutex>
 #include <memory>
 #include <string>
 #include <vector>
@@ -19,7 +18,6 @@
 static hb_gpu_draw_t *g_hb_gpu_draw;
 static hb_raster_draw_t *g_hb_raster_draw;
 static hb_raster_paint_t *g_hb_raster_paint;
-static std::once_flag g_hb_init_flag;
 
 static void init_hb() {
   g_hb_gpu_draw = hb_gpu_draw_create_or_fail();
@@ -31,18 +29,29 @@ static void init_hb() {
 }
 
 static hb_gpu_draw_t *get_hb_gpu_draw() {
-  std::call_once(g_hb_init_flag, init_hb);
-  return g_hb_gpu_draw;
+  static hb_gpu_draw_t *s = []() {
+    g_hb_gpu_draw = hb_gpu_draw_create_or_fail();
+    return g_hb_gpu_draw;
+  }();
+  return s;
 }
 
 static hb_raster_draw_t *get_hb_raster_draw() {
-  std::call_once(g_hb_init_flag, init_hb);
-  return g_hb_raster_draw;
+  static hb_raster_draw_t *s = []() {
+    g_hb_raster_draw = hb_raster_draw_create_or_fail();
+    hb_raster_draw_set_transform(g_hb_raster_draw, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+    return g_hb_raster_draw;
+  }();
+  return s;
 }
 
 static hb_raster_paint_t *get_hb_raster_paint() {
-  std::call_once(g_hb_init_flag, init_hb);
-  return g_hb_raster_paint;
+  static hb_raster_paint_t *s = []() {
+    g_hb_raster_paint = hb_raster_paint_create_or_fail();
+    hb_raster_paint_set_transform(g_hb_raster_paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+    return g_hb_raster_paint;
+  }();
+  return s;
 }
 
 struct MatnTypeface {
