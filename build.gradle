@@ -120,7 +120,9 @@ jnigen {
         minIOSVersion = "15.0"
     }
 
-    addAndroid()
+    addAndroid() {
+        androidApplicationMk += ["APP_EXCEPTIONS := true\nAPP_STL := c++_shared"]
+    }
 }
 
 apply from: 'publish.gradle'
