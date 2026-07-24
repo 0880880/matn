@@ -121,7 +121,8 @@ jnigen {
     }
 
     addAndroid() {
-        androidApplicationMk += ["APP_EXCEPTIONS := true\nAPP_STL := c++_shared"]
+        androidApplicationMk += ["APP_CPPFLAGS += -fexceptions -frtti\nAPP_STL := c++_shared"]
+        cppFlags += ["-fexceptions"]
     }
 }
 
