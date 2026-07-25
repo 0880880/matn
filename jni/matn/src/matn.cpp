@@ -205,9 +205,13 @@ static void populate_face(MatnTypeface *face) {
     face->instance_names.emplace_back(std::move(name));
     face->instance_coords.emplace_back(std::move(coords));
 
-    face->instances.emplace_back(face->instance_names.back().c_str(),
-                                 face->instance_coords.back().data(),
-                                 coords_len);
+    const char* name_ptr = face->instance_names.back().empty() ? nullptr : face->instance_names.back().c_str();
+
+    face->instances.push_back(MatnVarInstance{
+        name_ptr,
+        face->instance_coords.back().data(),
+        static_cast<int>(coords_len)
+    });
   }
 }
 
