@@ -193,7 +193,7 @@ static void populate_face(MatnTypeface *face) {
     if (name_len != 0) {
       name.resize(name_len);
       unsigned int written = name_len;
-      hb_ot_name_get_utf8(face->hb_face, name_id, HB_LANGUAGE_INVALID, &written, name.data());
+        hb_ot_name_get_utf8(face->hb_face, name_id, HB_LANGUAGE_INVALID, &written, &name[0]);
       name.resize(written);
     }
 
