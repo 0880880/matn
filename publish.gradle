@@ -69,7 +69,7 @@ def configurePom = { pom ->
     pom.with {
         name = "Matn extension for libGDX"
         description = "Font rasterization and text shaping for libGDX."
-        url = "https://github.com/rednblackgames/gdx-miniaudio"
+        url = "https://github.com/0880880/matn"
         licenses {
             license {
                 name = "The Apache Software License, Version 2.0"
@@ -81,7 +81,7 @@ def configurePom = { pom ->
             developer {
                 id = "0880880"
                 name = "0880"
-                email = "98263509+0880880@users.noreply.github.com"
+                email = "mirzariya@proton.me"
             }
         }
         scm {
