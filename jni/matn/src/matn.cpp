@@ -184,19 +184,30 @@ static void populate_face(MatnTypeface *face) {
   face->instance_names.reserve(named_count);
 
   for (uint32_t i = 0; i < named_count; ++i) {
-    hb_ot_name_id_t name_id =
-        hb_ot_var_named_instance_get_subfamily_name_id(face->hb_face, i);
-    char name_buf[64];
-    uint32_t name_buf_size = 64;
-    hb_ot_name_get_utf8(face->hb_face, name_id, HB_LANGUAGE_INVALID,
-                        &name_buf_size, name_buf);
-    face->instance_names.emplace_back(name_buf);
+    hb_ot_name_id_t name_id = hb_ot_var_named_instance_get_subfamily_name_id(face->hb_face, i);
+
+    std::string name;
+    unsigned int name_len = 0;
+    hb_ot_name_get_utf8(face->hb_face, name_id, HB_LANGUAGE_INVALID, &name_len, nullptr);
+
+    if (name_len != 0) {
+      name.resize(name_len);
+      unsigned int written = name_len;
+      hb_ot_name_get_utf8(face->hb_face, name_id, HB_LANGUAGE_INVALID, &written, name.data());
+      name.resize(written);
+    }
 
     uint32_t coords_len = axis_count;
     std::vector<float> coords(axis_count);
-    hb_ot_var_named_instance_get_design_coords(face->hb_face, i, &coords_len,
-                                               coords.data());
-    face->instance_coords.push_back(coords);
+    hb_ot_var_named_instance_get_design_coords(face->hb_face, i, &coords_len, coords.data());
+    coords.resize(coords_len);
+
+    face->instance_names.emplace_back(std::move(name));
+    face->instance_coords.emplace_back(std::move(coords));
+
+    face->instances.emplace_back(face->instance_names.back().c_str(),
+                                 face->instance_coords.back().data(),
+                                 coords_len);
   }
 }
 
