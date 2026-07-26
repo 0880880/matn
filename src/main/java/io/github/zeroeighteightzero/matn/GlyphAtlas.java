@@ -21,7 +21,7 @@ import static com.badlogic.gdx.graphics.GL32.GL_TEXTURE_BUFFER;
  * Texture atlas for font glyphs. Glyphs are packed with true Bottom-Left placement
  * (Baker–Coffman–Rivest): each glyph is placed at the lexicographically minimal
  * feasible (y, x). That is the placement rule used by FQW-ordered Bottom-Left
- * (Hougardy & Zondervan, STACS 2026). Because {@link #getGlyph} is online, the
+ * (Hougardy &amp; Zondervan, STACS 2026). Because {@link #getGlyph} is online, the
  * offline FQW global ordering cannot be applied; placement is irrevocable BL.
  */
 public class GlyphAtlas implements Disposable {
