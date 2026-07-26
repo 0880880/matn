@@ -118,6 +118,7 @@ publishing {
 
     repositories {
         maven {
+            name = 'ossrh-staging-api'
             url = sonatypeRepositoryUrl
 
             if (getRepositoryUsername() || getRepositoryPassword()) {
