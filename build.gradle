@@ -18,7 +18,7 @@ plugins {
 
 apply plugin: "com.badlogicgames.jnigen.jnigen-gradle"
 
-group 'com.github.zeroeighteightzero.matn'
+group 'io.github.0880.matn'
 version '0.1'
 
 repositories {
@@ -66,7 +66,7 @@ jnigen {
 
     generator {
         outputPath = file("src/main/java")
-        basePackage = "com.github.zeroeighteightzero.matn._native"
+        basePackage = "io.github.zeroeighteightzero.matn._native"
         fileToParse = "matn.h"
         options = [
                 "-Ijni/matn/include",
