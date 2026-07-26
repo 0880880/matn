@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.SharedLibraryLoader;
 import io.github.zeroeighteightzero.matn._native.enums.MatnGPU_LANGUAGE;
 import io.github.zeroeighteightzero.matn._native.enums.MatnPixelFormat;
 import io.github.zeroeighteightzero.matn._native.enums.MatnResult;
-import com.github.zeroeighteightzero.matn._native.structs.*;
+import io.github.zeroeighteightzero.matn._native.structs.*;
 import io.github.zeroeighteightzero.matn._native.structs.*;
 
 public final class Matn {

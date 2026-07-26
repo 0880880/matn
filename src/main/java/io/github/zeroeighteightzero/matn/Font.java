@@ -17,7 +17,7 @@ import com.badlogic.gdx.utils.Disposable;
 import io.github.zeroeighteightzero.matn._native.Matn;
 import io.github.zeroeighteightzero.matn._native.enums.MatnGPU_LANGUAGE;
 import io.github.zeroeighteightzero.matn._native.enums.MatnPixelFormat;
-import com.github.zeroeighteightzero.matn._native.structs.*;
+import io.github.zeroeighteightzero.matn._native.structs.*;
 import io.github.zeroeighteightzero.matn._native.structs.*;
 
 import java.nio.ByteBuffer;
