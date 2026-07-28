@@ -144,6 +144,70 @@ public class Typeface implements Disposable {
         return new Font(this, atlas);
     }
 
+    /**
+     * Gets a variable-font axis by its OpenType tag.
+     *
+     * @param tag the four-character OpenType variation-axis tag
+     * @return the matching variable-font axis, or {@code null} if {@code tag} is not four characters long
+     * @throws RuntimeException if this typeface does not contain the specified axis
+     */
+    public VarAxis getVariableAxis(String tag) {
+        if (tag.length() != 4) {
+            return null;
+        }
+        for (VarAxis v : varAxes) {
+            if (v.tag.equals(tag)) {
+                return v;
+            }
+        }
+        throw new RuntimeException("Typeface does not have '" + tag + "' tag");
+    }
+
+    /**
+     * Gets the {@code ital} variable-font axis.
+     *
+     * @return the italic axis
+     */
+    public VarAxis italic() {
+        return getVariableAxis("ital");
+    }
+
+    /**
+     * Gets the {@code opsz} variable-font axis.
+     *
+     * @return the optical-size axis
+     */
+    public VarAxis opticalSize() {
+        return getVariableAxis("opsz");
+    }
+
+    /**
+     * Gets the {@code wght} variable-font axis.
+     *
+     * @return the weight axis
+     */
+    public VarAxis weight() {
+        return getVariableAxis("wgth");
+    }
+
+    /**
+     * Gets the {@code wdth} variable-font axis.
+     *
+     * @return the width axis
+     */
+    public VarAxis width() {
+        return getVariableAxis("wdth");
+    }
+
+    /**
+     * Gets the {@code slnt} variable-font axis.
+     *
+     * @return the slant axis
+     */
+    public VarAxis slant() {
+        return getVariableAxis("slnt");
+    }
+
     @Override
     public void dispose() {
         Matn.matn_typeface_destroy(mtFace);
