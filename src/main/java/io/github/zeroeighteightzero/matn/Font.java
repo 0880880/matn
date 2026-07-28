@@ -608,6 +608,25 @@ public class Font implements Disposable {
     }
 
     /**
+     * Sets synthetic bold using the same amount for both axes.
+     *
+     * @param bold the horizontal and vertical bold amount
+     * @param inPlace whether bolding should be applied in place
+     */
+    public void setSyntheticBold(float bold, boolean inPlace) {
+        setSyntheticBold(bold, bold, inPlace);
+    }
+
+    /**
+     * Sets synthetic bold using the specified amount and applies it out of place.
+     *
+     * @param bold the horizontal and vertical bold amount
+     */
+    public void setSyntheticBold(float bold) {
+        setSyntheticBold(bold, bold, false);
+    }
+
+    /**
      * Gets the synthetic slant value.
      *
      * @return the synthetic slant value
