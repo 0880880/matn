@@ -124,6 +124,29 @@ public class Font implements Disposable {
     }
 
     /**
+     * Gets the pending value of a variable font axis.
+     *
+     * <p>The returned value is the locally configured coordinate. It may not be
+     * reflected by the native font until {@link #applyVariation()} is called.</p>
+     *
+     * @param tag the four-character OpenType variation-axis tag
+     * @return the configured axis value, or {@code 0} if {@code tag} is not four characters long
+     * @throws RuntimeException if this typeface does not contain the specified axis
+     */
+    public float getVariableAxis(String tag) {
+        if (tag.length() != 4) {
+            return 0;
+        }
+        for (int i = 0; i < face.varAxes.length; i++) {
+            VarAxis v = this.face.varAxes[i];
+            if (v.tag.equals(tag)) {
+                return this.varCoords[i];
+            }
+        }
+        throw new RuntimeException("Typeface does not have '" + tag + "' tag");
+    }
+
+    /**
      * Sets the {@code ital} variable-font axis.
      *
      * @param value the italic-axis value
@@ -166,6 +189,51 @@ public class Font implements Disposable {
      */
     public void slant(float value) {
         setVariableAxis("slnt", value);
+    }
+
+    /**
+     * Gets the pending value of the {@code ital} variable-font axis.
+     *
+     * @return the configured italic-axis value
+     */
+    public float italic() {
+        return getVariableAxis("ital");
+    }
+
+    /**
+     * Gets the pending value of the {@code opsz} variable-font axis.
+     *
+     * @return the configured optical-size axis value
+     */
+    public float opticalSize() {
+        return getVariableAxis("opsz");
+    }
+
+    /**
+     * Gets the pending value of the {@code wght} variable-font axis.
+     *
+     * @return the configured weight-axis value
+     */
+    public float weight() {
+        return getVariableAxis("wght");
+    }
+
+    /**
+     * Gets the pending value of the {@code wdth} variable-font axis.
+     *
+     * @return the configured width-axis value
+     */
+    public float width() {
+        return getVariableAxis("wdth");
+    }
+
+    /**
+     * Gets the pending value of the {@code slnt} variable-font axis.
+     *
+     * @return the configured slant-axis value
+     */
+    public float slant() {
+        return getVariableAxis("slnt");
     }
 
     /**
