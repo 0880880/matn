@@ -19,7 +19,7 @@ plugins {
 apply plugin: "com.badlogicgames.jnigen.jnigen-gradle"
 
 group 'io.github.0880880.matn'
-version '0.1'
+version '0.2.0'
 
 repositories {
     maven { url 'https://jitpack.io' }
