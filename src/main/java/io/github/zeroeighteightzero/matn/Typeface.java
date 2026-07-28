@@ -27,7 +27,7 @@ public class Typeface implements Disposable {
     public final VarAxis[] varAxes;
     public final NamedInstance[] namedInstances;
 
-    public Typeface(MatnTypeface.MatnTypefacePointer mtFace, boolean isScalable, boolean hasColor, boolean hasVariations, VarAxis[] varAxes, NamedInstance[] namedInstances, int upem) {
+    private Typeface(MatnTypeface.MatnTypefacePointer mtFace, boolean isScalable, boolean hasColor, boolean hasVariations, VarAxis[] varAxes, NamedInstance[] namedInstances, int upem) {
         this.mtFace = mtFace;
         this.isScalable = isScalable;
         this.hasColor = hasColor;
@@ -79,6 +79,17 @@ public class Typeface implements Disposable {
     Copied from gdx-freetype font loader
     https://github.com/libgdx/libgdx/blob/master/extensions/gdx-freetype/src/com/badlogic/gdx/graphics/g2d/freetype/FreeType.java
      */
+    /**
+     * Loads a typeface from a font file and selects a face from the file.
+     *
+     * <p>The face index is useful for font collections containing multiple
+     * typefaces. A value of {@code 0} selects the first face.</p>
+     *
+     * @param file the font file to load
+     * @param index the zero-based face index within the font file or collection
+     * @return a newly loaded typeface
+     * @throws GdxRuntimeException if the file cannot be read
+     */
     public static Typeface fromFile(FileHandle file, int index) {
         ByteBuffer buffer = null;
         try {
@@ -109,10 +120,26 @@ public class Typeface implements Disposable {
         return loadMemory(buffer, index);
     }
 
+    /**
+     * Loads the first typeface from a font file.
+     *
+     * @param file the font file to load
+     * @return a newly loaded typeface
+     * @throws GdxRuntimeException if the file cannot be read
+     */
     public static Typeface fromFile(FileHandle file) {
         return fromFile(file, 0);
     }
 
+    /**
+     * Creates a font instance from this typeface.
+     *
+     * <p>The returned font has its own variation and synthetic-style settings,
+     * while sharing this typeface's underlying font data.</p>
+     *
+     * @param atlas the glyph atlas used for rasterized and GPU glyph storage
+     * @return a new font instance
+     */
     public Font createFont(GlyphAtlas atlas) {
         return new Font(this, atlas);
     }

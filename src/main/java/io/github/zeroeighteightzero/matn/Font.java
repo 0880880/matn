@@ -97,6 +97,17 @@ public class Font implements Disposable {
 
     }
 
+    /**
+     * Sets the value of a variable font axis.
+     *
+     * <p>The value is clamped to the axis's supported minimum and maximum range.
+     * Call {@link #applyVariation()} after changing one or more axes to apply
+     * the pending variation coordinates to the native font.</p>
+     *
+     * @param tag the four-character OpenType variation-axis tag
+     * @param value the requested axis value
+     * @throws RuntimeException if this typeface does not contain the specified axis
+     */
     public void setVariableAxis(String tag, float value) {
         if (tag.length() != 4) {
             return;
@@ -112,26 +123,57 @@ public class Font implements Disposable {
         throw new RuntimeException("Typeface does not have '" + tag + "' tag");
     }
 
+    /**
+     * Sets the {@code ital} variable-font axis.
+     *
+     * @param value the italic-axis value
+     */
     public void italic(float value) {
         setVariableAxis("ital", value);
     }
 
+    /**
+     * Sets the {@code opsz} variable-font axis.
+     *
+     * @param value the optical-size axis value
+     */
     public void opticalSize(float value) {
         setVariableAxis("opsz", value);
     }
 
+    /**
+     * Sets the {@code wght} variable-font axis.
+     *
+     * @param value the weight-axis value
+     */
     public void weight(float value) {
         setVariableAxis("wght", value);
     }
 
+    /**
+     * Sets the {@code wdth} variable-font axis.
+     *
+     * @param value the width-axis value
+     */
     public void width(float value) {
         setVariableAxis("wdth", value);
     }
 
+    /**
+     * Sets the {@code slnt} variable-font axis.
+     *
+     * @param value the slant-axis value
+     */
     public void slant(float value) {
         setVariableAxis("slnt", value);
     }
 
+    /**
+     * Applies the currently configured variable-font coordinates to this font.
+     *
+     * <p>This also refreshes the ascender, descender, line gap, and line-height
+     * metrics to reflect the selected variation.</p>
+     */
     public void applyVariation() {
         FloatPointer coords = new FloatPointer(this.varCoords.length);
         for (int i = 0; i < this.varCoords.length; ++i) {
@@ -145,6 +187,12 @@ public class Font implements Disposable {
         lineHeight = ascender - descender + lineGap;
     }
 
+    /**
+     * Applies a named variation instance to this font.
+     *
+     * @param instance the named instance whose coordinates should be applied
+     * @throws RuntimeException if the instance coordinate count does not match this font
+     */
     public void setNamedInstance(NamedInstance instance) {
         if (instance.coords.length != this.varCoords.length) {
             throw new RuntimeException("Coordinates size doesn't match.");
@@ -153,6 +201,12 @@ public class Font implements Disposable {
         applyVariation();
     }
 
+    /**
+     * Applies the named variation instance with the specified name.
+     *
+     * @param name the name of the variation instance
+     * @throws RuntimeException if no named instance with the specified name exists
+     */
     public void setNamedInstance(String name) {
         for (int i = 0; i < face.namedInstances.length; ++i) {
             if (face.namedInstances[i].name.equals(name)) {
@@ -163,14 +217,32 @@ public class Font implements Disposable {
         throw new RuntimeException("Named instance not found");
     }
 
+    /**
+     * Gets the glyph identifier associated with a Unicode code point.
+     *
+     * @param codepoint the Unicode code point
+     * @return the font-specific glyph identifier, or the missing-glyph identifier when unavailable
+     */
     public long getGlyphID(int codepoint) {
         return Matn.matn_font_get_glyph_id(mtFont, codepoint);
     }
 
+    /**
+     * Gets the glyph identifier associated with a UTF-16 character.
+     *
+     * @param codepoint the character to look up
+     * @return the font-specific glyph identifier, or the missing-glyph identifier when unavailable
+     */
     public long getGlyphID(char codepoint) {
         return getGlyphID((int) codepoint);
     }
 
+    /**
+     * Gets layout metrics for a glyph.
+     *
+     * @param glyphID the font-specific glyph identifier
+     * @return the glyph's width, height, horizontal bearing, and vertical bearing
+     */
     public GlyphMetrics getGlyphMetrics(long glyphID) {
         MatnGlyphMetrics.MatnGlyphMetricsPointer ptr = new MatnGlyphMetrics.MatnGlyphMetricsPointer();
         Matn.matn_font_get_glyph_metrics(mtFont, glyphID, ptr);
@@ -196,10 +268,24 @@ public class Font implements Disposable {
         }
     }
 
+    /**
+     * Shapes the entire paragraph using this font.
+     *
+     * @param paragraph the UTF-16 paragraph to shape
+     * @return the shaping result containing glyph IDs, advances, offsets, clusters, and direction
+     */
     public ShapeResult shape(Paragraph paragraph) {
         return shape(paragraph, 0, paragraph.length);
     }
 
+    /**
+     * Shapes a range of UTF-16 code units within a paragraph.
+     *
+     * @param paragraph the UTF-16 paragraph to shape
+     * @param offset the starting UTF-16 code-unit offset
+     * @param length the number of UTF-16 code units to shape
+     * @return the shaping result containing glyph IDs, advances, offsets, clusters, and direction
+     */
     public ShapeResult shape(Paragraph paragraph, int offset, int length) {
         if (paragraph.length == 0) {
             return new ShapeResult(new Vector2[0], new Vector2[0], new long[0], new long[0], false);
@@ -222,6 +308,13 @@ public class Font implements Disposable {
         return res;
     }
 
+    /**
+     * Rasterizes a glyph into a pixmap at the requested size.
+     *
+     * @param glyphID the font-specific glyph identifier
+     * @param size the rasterization size
+     * @return a newly created pixmap containing the rasterized glyph
+     */
     public Pixmap rasterize(long glyphID, int size) {
         PointerPointer<MatnBlob.MatnBlobPointer> ptr = new PointerPointer<>(MatnBlob.MatnBlobPointer::new);
         Matn.matn_rasterize_glyph(mtFont, glyphID, size, ptr);
@@ -270,6 +363,12 @@ public class Font implements Disposable {
         return pixmap;
     }
 
+    /**
+     * Encodes a glyph into the GPU representation used by this font's glyph atlas.
+     *
+     * @param glyphID the font-specific glyph identifier
+     * @return the encoded GPU glyph
+     */
     public GPUGlyph encodeGPU(long glyphID) {
         PointerPointer<MatnGPU_Blob.MatnGPU_BlobPointer> ptr = new PointerPointer<>(MatnGPU_Blob.MatnGPU_BlobPointer::new);
         Matn.matn_gpu_draw_glyph(mtFont, glyphID, ptr);
@@ -283,42 +382,96 @@ public class Font implements Disposable {
         return atlas.createGPUGlyph(face, gpuBlob.get(), dataBuffer, (int) length);
     }
 
+    /**
+     * Gets the GLSL vertex shader source required for GPU glyph rendering.
+     *
+     * @return the GLSL vertex shader source code
+     */
     public static String getVertexShader() {
         return Matn.matn_gpu_get_vertex(MatnGPU_LANGUAGE.MATN_GPU_LANGUAGE_GLSL).getString();
     }
 
+    /**
+     * Gets the GLSL fragment shader source required for GPU glyph rendering.
+     *
+     * @return the GLSL fragment shader source code
+     */
     public static String getFragmentShader() {
         return Matn.matn_gpu_get_fragment(MatnGPU_LANGUAGE.MATN_GPU_LANGUAGE_GLSL).getString();
     }
 
+    /**
+     * Gets the current variable-font coordinates.
+     *
+     * @return the mutable array of variation-axis coordinates
+     */
     public float[] getVarCoords() {
         return varCoords;
     }
 
+    /**
+     * Gets this font's display name.
+     *
+     * @return the font name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets this font's display name.
+     *
+     * @param name the new font name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the ascender scaled to the specified font size.
+     *
+     * @param size the font size
+     * @return the scaled ascender
+     */
     public float getAscender(float size) {
         return ascender * size;
     }
 
+    /**
+     * Gets the descender scaled to the specified font size.
+     *
+     * @param size the font size
+     * @return the scaled descender
+     */
     public float getDescender(float size) {
         return descender * size;
     }
 
+    /**
+     * Gets the line gap scaled to the specified font size.
+     *
+     * @param size the font size
+     * @return the scaled line gap
+     */
     public float getLineGap(float size) {
         return lineGap * size;
     }
 
+    /**
+     * Gets the total line height scaled to the specified font size.
+     *
+     * @param size the font size
+     * @return the scaled line height
+     */
     public float getLineHeight(float size) {
         return lineHeight * size;
     }
 
+    /**
+     * Gets the font's unscaled ascender.
+     *
+     * @return the unscaled ascender
+     */
     public float getUnscaledAscender() {
         return ascender;
     }
@@ -327,26 +480,58 @@ public class Font implements Disposable {
         return descender;
     }
 
+    /**
+     * Gets the font's unscaled line gap.
+     *
+     * @return the unscaled line gap
+     */
     public float getUnscaledLineGap() {
         return lineGap;
     }
 
+    /**
+     * Gets the font's unscaled total line height.
+     *
+     * @return the unscaled line height
+     */
     public float getUnscaledLineHeight() {
         return lineHeight;
     }
 
+    /**
+     * Gets the horizontal synthetic-bold amount.
+     *
+     * @return the horizontal synthetic-bold amount
+     */
     public float getSyntheticBoldX() {
         return boldX;
     }
 
+    /**
+     * Gets the vertical synthetic-bold amount.
+     *
+     * @return the vertical synthetic-bold amount
+     */
     public float getSyntheticBoldY() {
         return boldY;
     }
 
+    /**
+     * Determines whether synthetic bold is applied in place.
+     *
+     * @return {@code true} if synthetic bold is applied in place
+     */
     public boolean getSyntheticBoldInPlace() {
         return boldInPlace;
     }
 
+    /**
+     * Configures synthetic bold for this font.
+     *
+     * @param boldX the horizontal bold amount
+     * @param boldY the vertical bold amount
+     * @param inPlace whether bolding should be applied in place
+     */
     public void setSyntheticBold(float boldX, float boldY, boolean inPlace) {
         this.boldX = boldX;
         this.boldY = boldY;
@@ -354,10 +539,20 @@ public class Font implements Disposable {
         Matn.matn_font_set_synthetic_bold(mtFont, boldX, boldY, inPlace ? 1 : 0);
     }
 
+    /**
+     * Gets the synthetic slant value.
+     *
+     * @return the synthetic slant value
+     */
     public float getSyntheticSlant() {
         return slant;
     }
 
+    /**
+     * Sets the synthetic slant value for this font.
+     *
+     * @param slant the synthetic slant value
+     */
     public void setSyntheticSlant(float slant) {
         this.slant = slant;
         Matn.matn_font_set_synthetic_slant(mtFont, slant);
@@ -365,6 +560,18 @@ public class Font implements Disposable {
 
     private final Matrix4 mat = new Matrix4();
 
+    /**
+     * Draws a single glyph using a standard LibGDX batch.
+     *
+     * @param batch the batch used to draw the glyph
+     * @param glyphID the font-specific glyph identifier
+     * @param fontSize the desired font size
+     * @param x the glyph origin x-coordinate
+     * @param y the glyph origin y-coordinate
+     * @param sx the horizontal scale factor
+     * @param sy the vertical scale factor
+     * @param rot the rotation in radians
+     */
     public void drawGlyph(Batch batch, long glyphID, float fontSize, float x, float y, float sx, float sy, float rot) {
         Glyph glyph = atlas.getGlyph(this, glyphID, (int) fontSize);
         float scale = fontSize / glyph.size;
@@ -381,6 +588,14 @@ public class Font implements Disposable {
         batch.draw(atlas.pages.get(glyph.page).texture, glyph.bearingX * fontSize, -glyph.height * scale + glyph.bearingY * fontSize, width, height, glyph.u, glyph.v, glyph.u2, glyph.v2);
     }
 
+    /**
+     * Draws a prepared text layout using a standard LibGDX batch.
+     *
+     * @param batch the batch used to draw the text
+     * @param layout the prepared layout to render
+     * @param x the x-coordinate of the layout origin
+     * @param y the y-coordinate of the first line baseline
+     */
     public void drawText(Batch batch, Layout layout, float x, float y) {
         int idx = 0;
         float penX = x;
@@ -397,10 +612,27 @@ public class Font implements Disposable {
         }
     }
 
+    /**
+     * Draws a single glyph using a GPU text batch.
+     *
+     * @param batch the GPU text batch used to draw the glyph
+     * @param glyphID the font-specific glyph identifier
+     * @param fontSize the desired font size
+     * @param x the glyph origin x-coordinate
+     * @param y the glyph origin y-coordinate
+     */
     public void drawGPUGlyph(GPUTextBatch batch, long glyphID, float fontSize, float x, float y) {
         batch.drawGlyph(atlas.getGPUGlyph(this, glyphID), fontSize, x, y);
     }
 
+    /**
+     * Draws a prepared text layout using a GPU text batch.
+     *
+     * @param batch the GPU text batch used to draw the text
+     * @param layout the prepared layout to render
+     * @param x the x-coordinate of the layout origin
+     * @param y the y-coordinate of the first line baseline
+     */
     public void drawGPUText(GPUTextBatch batch, Layout layout, float x, float y) {
         int idx = 0;
         for (int i = 0; i < layout.lines.size; ++i) {
@@ -414,6 +646,18 @@ public class Font implements Disposable {
         }
     }
 
+    /**
+     * Lays out and draws text using a standard LibGDX batch.
+     *
+     * <p>This method reuses an internal layout instance and is therefore not
+     * suitable for concurrent use from multiple threads.</p>
+     *
+     * @param batch the batch used to draw the text
+     * @param text the text to lay out and render
+     * @param fontSize the desired font size
+     * @param x the x-coordinate of the text origin
+     * @param y the y-coordinate of the first line baseline
+     */
     public void drawText(Batch batch, String text, float fontSize, float x, float y) {
         layout.setText(text);
         layout.fontSize(fontSize);

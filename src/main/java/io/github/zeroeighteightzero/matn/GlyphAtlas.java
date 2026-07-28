@@ -54,7 +54,7 @@ public class GlyphAtlas implements Disposable {
 
         final Array<Rect> placed = new Array<>();
 
-        public Page(int pageSize, Pixmap.Format format) {
+        protected Page(int pageSize, Pixmap.Format format) {
             this.format = format;
             texture = new Texture(pageSize, pageSize, format);
         }
@@ -123,6 +123,12 @@ public class GlyphAtlas implements Disposable {
         }
     }
 
+    /**
+     * Creates a glyph atlas with the specified page size and pixel format.
+     *
+     * @param pageSize the width and height of each square atlas page in pixels
+     * @param format the pixel format used by atlas textures
+     */
     public GlyphAtlas(int pageSize, Pixmap.Format format) {
         this.pageSize = pageSize;
         this.format = format;
@@ -138,10 +144,20 @@ public class GlyphAtlas implements Disposable {
         }
     }
 
+    /**
+     * Creates a glyph atlas with the specified page size and the RGBA8888 pixel format.
+     *
+     * @param pageSize the width and height of each square atlas page in pixels
+     */
     public GlyphAtlas(int pageSize) {
         this(pageSize, Pixmap.Format.RGBA8888);
     }
 
+    /**
+     * Binds the GPU page containing the specified glyph for subsequent rendering.
+     *
+     * @param glyph the GPU glyph whose page should be bound
+     */
     public void bindGPU(GPUGlyph glyph) {
         if (hasTexBuf) {
             Gdx.gl.glBindBuffer(GL_TEXTURE_BUFFER, gpuPages.get(glyph.page).buf.get(0));
@@ -211,6 +227,13 @@ public class GlyphAtlas implements Disposable {
 
     }
 
+    /**
+     * Retrieves the GPU representation of a glyph, creating and caching it when necessary.
+     *
+     * @param font the typeface containing the glyph
+     * @param glyphID the identifier of the glyph to retrieve
+     * @return the cached or newly encoded GPU glyph
+     */
     public GPUGlyph getGPUGlyph(Font font, long glyphID) {
         long hash = Utils.glyphHash(font, glyphID);
 
@@ -224,6 +247,15 @@ public class GlyphAtlas implements Disposable {
         return glyph;
     }
 
+    /**
+     * Retrieves a rasterized glyph at the requested size, packing and caching it when necessary.
+     *
+     * @param font the typeface containing the glyph
+     * @param glyphID the identifier of the glyph to retrieve
+     * @param size the requested glyph size
+     * @return the cached or newly packed glyph
+     * @throws RuntimeException if the glyph is larger than a complete atlas page
+     */
     public Glyph getGlyph(Font font, long glyphID, int size) {
         int steppedSize = Utils.getFontSize(size);
         long hash = Utils.glyphHashWithSize(font, glyphID, steppedSize);
@@ -367,6 +399,9 @@ public class GlyphAtlas implements Disposable {
         a.size = write;
     }
 
+    /**
+     * Releases all page textures and GPU resources owned by this atlas.
+     */
     @Override
     public void dispose() {
         for (Page page : pages) {
