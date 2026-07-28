@@ -187,7 +187,7 @@ public class Typeface implements Disposable {
      * @return the weight axis
      */
     public VarAxis weight() {
-        return getVariableAxis("wgth");
+        return getVariableAxis("wght");
     }
 
     /**
