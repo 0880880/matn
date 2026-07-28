@@ -30,13 +30,12 @@ Font boldFont = face.createFont(atlas);
 
 boldFont.weight(800); // Sets the OpenType MM weight
 // if doesn't have weight/variations
-boldFont.setSyntheticBold(.01f, .01f, false);
+boldFont.setSyntheticBold(.01f);
 ```
 
 Draw:
 
 ```java
-
 @Override
 public void render() {
     batch.begin();
