@@ -15,6 +15,9 @@
 
 #include <SheenBidi/SheenBidi.h>
 
+#define FONT_SCALE 128
+#define INV_FONT_SCALE (1.0f / (float)FONT_SCALE)
+
 static hb_gpu_draw_t *g_hb_gpu_draw;
 static hb_raster_draw_t *g_hb_raster_draw;
 static hb_raster_paint_t *g_hb_raster_paint;
@@ -94,6 +97,7 @@ struct InternalBuffer {
 struct MatnFont {
   MatnTypeface *face;
   hb_font_t *hb_font = nullptr;
+  hb_font_t *hb_shaping_font = nullptr;
 
   InternalBuffer buffer;
   MatnBufferView buffer_view;
@@ -117,6 +121,9 @@ struct MatnFont {
     }
     if (hb_font) {
       hb_font_destroy(hb_font);
+    }
+    if (hb_shaping_font) {
+      hb_font_destroy(hb_shaping_font);
     }
     --face->font_count;
   }
@@ -324,7 +331,10 @@ MatnResult matn_typeface_create_font(MatnTypeface *face, MatnFont **out_font) {
   auto font = std::make_unique<MatnFont>();
   font->face = face;
   font->hb_font = hb_font_create(face->hb_face);
+  font->hb_shaping_font = hb_font_create(face->hb_face);
   font->hb_buf = hb_buffer_create();
+
+  hb_font_set_scale(font->hb_shaping_font, face->upem * FONT_SCALE, face->upem * FONT_SCALE);
 
   {
     hb_font_extents_t font_extents;
@@ -340,8 +350,6 @@ MatnResult matn_typeface_create_font(MatnTypeface *face, MatnFont **out_font) {
   font->size_px = y_ppem;
 
   ++face->font_count;
-
-  update_font_size(font.get(), 16);
 
   *out_font = font.release();
   return MATN_SUCCESS;
@@ -368,7 +376,8 @@ MatnResult matn_font_set_var_coords(MatnFont *font, const float *coords,
     return MATN_ERR_INVALID_ARGUMENT;
   }
 
-  hb_font_set_var_coords_design (font->hb_font, coords, coords_count);
+  hb_font_set_var_coords_design(font->hb_font, coords, coords_count);
+  hb_font_set_var_coords_design(font->hb_shaping_font, coords, coords_count);
 
   return MATN_SUCCESS;
 }
@@ -382,6 +391,7 @@ void matn_font_get_synthetic_bold(const MatnFont *font, float *x, float *y, int 
 void matn_font_set_synthetic_bold(const MatnFont *font, float x, float y, int in_place) {
   if (font) {
     hb_font_set_synthetic_bold(font->hb_font, x, y, in_place);
+    hb_font_set_synthetic_bold(font->hb_shaping_font, x, y, in_place);
   }
 }
 
@@ -392,6 +402,7 @@ float matn_font_get_synthetic_slant(const MatnFont *font) {
 void matn_font_set_synthetic_slant(const MatnFont *font, float slant) {
   if (font) {
     hb_font_set_synthetic_slant(font->hb_font, slant);
+    hb_font_set_synthetic_slant(font->hb_shaping_font, slant);
   }
 }
 
@@ -411,11 +422,11 @@ MatnResult matn_font_get_glyph_metrics(MatnFont *font, uint32_t glyph_id, MatnGl
 
   hb_glyph_extents_t extents;
 
-  if (hb_font_get_glyph_extents(font->hb_font, glyph_id, &extents)) {
-    out_metrics->bearing_x = extents.x_bearing * font->face->inv_upem;
-    out_metrics->bearing_y = extents.y_bearing * font->face->inv_upem;
-    out_metrics->width = extents.width * font->face->inv_upem;
-    out_metrics->height = extents.height * font->face->inv_upem;
+  if (hb_font_get_glyph_extents(font->hb_shaping_font, glyph_id, &extents)) {
+    out_metrics->bearing_x = extents.x_bearing * font->face->inv_upem * INV_FONT_SCALE;
+    out_metrics->bearing_y = extents.y_bearing * font->face->inv_upem * INV_FONT_SCALE;
+    out_metrics->width = extents.width * font->face->inv_upem * INV_FONT_SCALE;
+    out_metrics->height = extents.height * font->face->inv_upem * INV_FONT_SCALE;
   } else {
     return MATN_ERR_DATA_NOT_FOUND;
   }
@@ -472,7 +483,7 @@ MatnResult matn_shape(MatnFont *font) {
     return MATN_ERR_INVALID_ARGUMENT;
   }
 
-  hb_shape(font->hb_font, font->hb_buf, nullptr, 0);
+  hb_shape(font->hb_shaping_font, font->hb_buf, nullptr, 0);
 
   uint32_t glyph_count;
   hb_glyph_info_t *glyph_info =
@@ -504,10 +515,10 @@ MatnResult matn_shape(MatnFont *font) {
 
   for (uint32_t i = 0; i < glyph_count; i++) {
     font->buffer.glyph_ids[i] = glyph_info[i].codepoint;
-    font->buffer.x_advances[i] = glyph_pos[i].x_advance * font->face->inv_upem;
-    font->buffer.y_advances[i] = glyph_pos[i].y_advance * font->face->inv_upem;
-    font->buffer.x_offsets[i] = glyph_pos[i].x_offset * font->face->inv_upem;
-    font->buffer.y_offsets[i] = glyph_pos[i].y_offset * font->face->inv_upem;
+    font->buffer.x_advances[i] = glyph_pos[i].x_advance * font->face->inv_upem * INV_FONT_SCALE;
+    font->buffer.y_advances[i] = glyph_pos[i].y_advance * font->face->inv_upem * INV_FONT_SCALE;
+    font->buffer.x_offsets[i] = glyph_pos[i].x_offset * font->face->inv_upem * INV_FONT_SCALE;
+    font->buffer.y_offsets[i] = glyph_pos[i].y_offset * font->face->inv_upem * INV_FONT_SCALE;
     font->buffer.clusters[i] = glyph_info[i].cluster;
   }
 
