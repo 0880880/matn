@@ -33,8 +33,12 @@ dependencies {
     implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
     implementation "com.badlogicgames.jnigen:jnigen-loader:$jniGenVersion"
     implementation "com.badlogicgames.jnigen:jnigen-runtime:$jniGenVersion"
-    implementation("com.badlogicgames.jnigen:jnigen-runtime-platform:${jniGenVersion}:natives-desktop")
-    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.jnigen:jnigen-runtime-platform:$jniGenVersion:natives-desktop"
+    implementation "com.badlogicgames.jnigen:jnigen-runtime-platform:$jniGenVersion:natives-ios"
+    implementation "com.badlogicgames.jnigen:jnigen-runtime-platform:$jniGenVersion:natives-arm64-v8a"
+    implementation "com.badlogicgames.jnigen:jnigen-runtime-platform:$jniGenVersion:natives-armeabi-v7a"
+    implementation "com.badlogicgames.jnigen:jnigen-runtime-platform:$jniGenVersion:natives-x86"
+    implementation "com.badlogicgames.jnigen:jnigen-runtime-platform:$jniGenVersion:natives-x86_64"
 
     testImplementation "com.badlogicgames.gdx:gdx:$gdxVersion"
     testImplementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
