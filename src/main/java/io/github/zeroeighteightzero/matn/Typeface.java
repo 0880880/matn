@@ -1,12 +1,10 @@
 package io.github.zeroeighteightzero.matn;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.jnigen.runtime.pointer.PointerPointer;
 import com.badlogic.gdx.jnigen.runtime.pointer.integer.BytePointer;
-import com.badlogic.gdx.utils.BufferUtils;
-import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.GdxRuntimeException;
-import com.badlogic.gdx.utils.StreamUtils;
+import com.badlogic.gdx.utils.*;
 import io.github.zeroeighteightzero.matn._native.Matn;
 import io.github.zeroeighteightzero.matn._native.structs.MatnTypeface;
 import io.github.zeroeighteightzero.matn._native.structs.MatnVarAxis;
@@ -27,21 +25,9 @@ public class Typeface implements Disposable {
     public final VarAxis[] varAxes;
     public final NamedInstance[] namedInstances;
 
-    private Typeface(MatnTypeface.MatnTypefacePointer mtFace, boolean isScalable, boolean hasColor, boolean hasVariations, VarAxis[] varAxes, NamedInstance[] namedInstances, int upem) {
-        this.mtFace = mtFace;
-        this.isScalable = isScalable;
-        this.hasColor = hasColor;
-        this.hasVariations = hasVariations;
-        this.varAxes = varAxes;
-        this.namedInstances = namedInstances;
-        this.upem = upem;
-    }
+    protected final Array<Font> managedFonts = new Array<>();
 
-    private static Typeface loadMemory(ByteBuffer data, int index) {
-        PointerPointer<MatnTypeface.MatnTypefacePointer> ptr = new PointerPointer<>(MatnTypeface.MatnTypefacePointer::new);
-        Matn.matn_typeface_from_memory(new BytePointer(BufferUtils.getUnsafeBufferAddress(data), false), data.remaining(), index, ptr);
-        MatnTypeface.MatnTypefacePointer mtFace = ptr.getValue();
-
+    private Typeface(MatnTypeface.MatnTypefacePointer mtFace) {
         boolean isScalable = Matn.matn_typeface_is_scalable(mtFace) != 0;
         boolean hasColor = Matn.matn_typeface_has_color(mtFace) != 0;
         boolean hasVariations = Matn.matn_typeface_has_variations(mtFace) != 0;
@@ -72,25 +58,26 @@ public class Typeface implements Disposable {
             namedInstances[i] = new NamedInstance(inst.name().isNull() ? "" : inst.name().getString(), coords);
         }
 
-        return new Typeface(mtFace, isScalable, hasColor, hasVariations, varAxes, namedInstances, (int) Matn.matn_typeface_get_upem(mtFace));
+        this.mtFace = mtFace;
+        this.isScalable = isScalable;
+        this.hasColor = hasColor;
+        this.hasVariations = hasVariations;
+        this.varAxes = varAxes;
+        this.namedInstances = namedInstances;
+        this.upem = (int) Matn.matn_typeface_get_upem(mtFace);
+    }
+
+    private static MatnTypeface.MatnTypefacePointer loadMemory(ByteBuffer data, int index) {
+        PointerPointer<MatnTypeface.MatnTypefacePointer> ptr = new PointerPointer<>(MatnTypeface.MatnTypefacePointer::new);
+        Matn.matn_typeface_from_memory(new BytePointer(BufferUtils.getUnsafeBufferAddress(data), false), data.remaining(), index, ptr);
+        return ptr.getValue();
     }
 
     /*
     Copied from gdx-freetype font loader
     https://github.com/libgdx/libgdx/blob/master/extensions/gdx-freetype/src/com/badlogic/gdx/graphics/g2d/freetype/FreeType.java
      */
-    /**
-     * Loads a typeface from a font file and selects a face from the file.
-     *
-     * <p>The face index is useful for font collections containing multiple
-     * typefaces. A value of {@code 0} selects the first face.</p>
-     *
-     * @param file the font file to load
-     * @param index the zero-based face index within the font file or collection
-     * @return a newly loaded typeface
-     * @throws GdxRuntimeException if the file cannot be read
-     */
-    public static Typeface fromFile(FileHandle file, int index) {
+    private static ByteBuffer fileToBuffer(FileHandle file) {
         ByteBuffer buffer = null;
         try {
             buffer = file.map();
@@ -117,31 +104,23 @@ public class Typeface implements Disposable {
                 StreamUtils.closeQuietly(input);
             }
         }
-        return loadMemory(buffer, index);
+        return buffer;
     }
 
-    /**
-     * Loads the first typeface from a font file.
-     *
-     * @param file the font file to load
-     * @return a newly loaded typeface
-     * @throws GdxRuntimeException if the file cannot be read
-     */
-    public static Typeface fromFile(FileHandle file) {
-        return fromFile(file, 0);
+    public Typeface(FileHandle file, int index) {
+        this(loadMemory(fileToBuffer(file), index));
     }
 
-    /**
-     * Creates a font instance from this typeface.
-     *
-     * <p>The returned font has its own variation and synthetic-style settings,
-     * while sharing this typeface's underlying font data.</p>
-     *
-     * @param atlas the glyph atlas used for rasterized and GPU glyph storage
-     * @return a new font instance
-     */
-    public Font createFont(GlyphAtlas atlas) {
-        return new Font(this, atlas);
+    public Typeface(FileHandle file) {
+        this(file, 0);
+    }
+
+    public Typeface(String internalPath, int index) {
+        this(Gdx.files.internal(internalPath), index);
+    }
+
+    public Typeface(String internalPath) {
+        this(internalPath, 0);
     }
 
     /**
@@ -210,6 +189,9 @@ public class Typeface implements Disposable {
 
     @Override
     public void dispose() {
+        if (managedFonts.notEmpty()) {
+            throw new RuntimeException("All fonts must be disposed before disposing typeface.");
+        }
         Matn.matn_typeface_destroy(mtFace);
     }
 }

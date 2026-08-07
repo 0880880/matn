@@ -66,7 +66,7 @@ public class Font implements Disposable {
         }
     }
 
-    Font(Typeface face, GlyphAtlas atlas) {
+    public Font(Typeface face, GlyphAtlas atlas) {
         this.face = face;
         this.atlas = atlas;
 
@@ -94,7 +94,6 @@ public class Font implements Disposable {
         this.boldInPlace = inPlacePtr.getInt(0) != 0;
 
         this.slant = Matn.matn_font_get_synthetic_slant(mtFont);
-
     }
 
     /**
