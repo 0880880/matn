@@ -15,14 +15,31 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * A loaded font face with its metadata and variation information.
+ *
+ * <p>Wraps a native text-engine typeface and exposes its scalability, color and variation
+ * flags, its units-per-em, and its variable-font axes and named instances. Load via the
+ * public constructors from a {@link FileHandle}, an internal path, or a file plus a font
+ * index. Obtain {@link Font} instances by passing this typeface to {@link Font}'s
+ * constructor.</p>
+ */
 public class Typeface implements Disposable {
 
     final MatnTypeface.MatnTypefacePointer mtFace;
 
-    public final boolean isScalable, hasColor, hasVariations;
+    /** Whether the typeface is scalable (vector) rather than bitmap. */
+    public final boolean isScalable;
+    /** Whether the typeface contains color glyphs. */
+    public final boolean hasColor;
+    /** Whether the typeface has variable-font axes. */
+    public final boolean hasVariations;
+    /** The units-per-em of the typeface. */
     public final int upem;
 
+    /** The variable-font axes of this typeface, if any. */
     public final VarAxis[] varAxes;
+    /** The named variation instances of this typeface, if any. */
     public final NamedInstance[] namedInstances;
 
     protected final Array<Font> managedFonts = new Array<>();
@@ -107,18 +124,40 @@ public class Typeface implements Disposable {
         return buffer;
     }
 
+    /**
+     * Loads a typeface from a file handle, selecting the given font face.
+     *
+     * @param file the file containing the font data
+     * @param index the zero-based index of the font face within the collection
+     */
     public Typeface(FileHandle file, int index) {
         this(loadMemory(fileToBuffer(file), index));
     }
 
+    /**
+     * Loads the first font face from a file handle.
+     *
+     * @param file the file containing the font data
+     */
     public Typeface(FileHandle file) {
         this(file, 0);
     }
 
+    /**
+     * Loads a typeface from an internal file path, selecting the given font face.
+     *
+     * @param internalPath an internal (classpath) path to the font file
+     * @param index the zero-based index of the font face within the collection
+     */
     public Typeface(String internalPath, int index) {
         this(Gdx.files.internal(internalPath), index);
     }
 
+    /**
+     * Loads the first font face from an internal file path.
+     *
+     * @param internalPath an internal (classpath) path to the font file
+     */
     public Typeface(String internalPath) {
         this(internalPath, 0);
     }
@@ -187,6 +226,14 @@ public class Typeface implements Disposable {
         return getVariableAxis("slnt");
     }
 
+    /**
+     * Releases the native typeface resource owned by this typeface.
+     *
+     * <p>All fonts created from this typeface must be disposed first, otherwise a
+     * {@link RuntimeException} is thrown.</p>
+     *
+     * @throws RuntimeException if fonts created from this typeface are still alive
+     */
     @Override
     public void dispose() {
         if (managedFonts.notEmpty()) {

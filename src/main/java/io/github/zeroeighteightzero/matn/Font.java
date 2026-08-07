@@ -18,10 +18,17 @@ import io.github.zeroeighteightzero.matn._native.Matn;
 import io.github.zeroeighteightzero.matn._native.enums.MatnGPU_LANGUAGE;
 import io.github.zeroeighteightzero.matn._native.enums.MatnPixelFormat;
 import io.github.zeroeighteightzero.matn._native.structs.*;
-import io.github.zeroeighteightzero.matn._native.structs.*;
 
 import java.nio.ByteBuffer;
 
+/**
+ * A text font built from a {@link Typeface} and rendered through a {@link GlyphAtlas}.
+ *
+ * <p>A font wraps a native text-engine instance and holds variable-font coordinates,
+ * synthetic-bold and synthetic-slant settings, and cached vertical metrics. Use it to
+ * look up and rasterize glyphs, shape paragraphs, and draw text with either a standard
+ * LibGDX {@link Batch} or a {@link GPUTextBatch}.</p>
+ */
 public class Font implements Disposable {
 
     public String name = "Unnamed Font";
@@ -38,6 +45,9 @@ public class Font implements Disposable {
 
     private final Layout layout = new Layout(this, 1);
 
+    /**
+     * Layout metrics describing the size and bearings of a glyph.
+     */
     public static class GlyphMetrics {
         public final float width, height;
         public final float bearingX, bearingY;
@@ -50,6 +60,13 @@ public class Font implements Disposable {
         }
     }
 
+    /**
+     * The result of shaping a paragraph of text.
+     *
+     * <p>For each shaped glyph the arrays {@link #advances}, {@link #offsets},
+     * {@link #glyphIDs}, and {@link #clusters} contain one corresponding entry.
+     * {@link #rtl} indicates whether the buffer was shaped right-to-left.</p>
+     */
     public static class ShapeResult {
         public final Vector2[] advances;
         public final Vector2[] offsets;
@@ -57,6 +74,15 @@ public class Font implements Disposable {
         public final long[] clusters;
         public final boolean rtl;
 
+        /**
+         * Creates a shaping result with the given per-glyph data.
+         *
+         * @param advances the horizontal and vertical advance of each glyph
+         * @param offsets the horizontal and vertical offset of each glyph
+         * @param glyphIDs the font-specific glyph identifier of each glyph
+         * @param clusters the source UTF-16 cluster index of each glyph
+         * @param rtl whether the shaped buffer is right-to-left
+         */
         public ShapeResult(Vector2[] advances, Vector2[] offsets, long[] glyphIDs, long[] clusters, boolean rtl) {
             this.advances = advances;
             this.offsets = offsets;
@@ -317,10 +343,21 @@ public class Font implements Disposable {
         return new GlyphMetrics(gm.width(), gm.height(), gm.bearing_x(), gm.bearing_y());
     }
 
+    /**
+     * A UTF-16 text paragraph shaped as a single unit.
+     *
+     * <p>Constructing a paragraph copies the text into a native-side buffer, making it
+     * suitable for passing to the shaping functions in {@link Font}.</p>
+     */
     public static class Paragraph {
         protected final UShortPointer ptr;
         public final int length;
 
+        /**
+         * Creates a paragraph from the given text.
+         *
+         * @param text the paragraph text; {@code null} or empty yields an empty paragraph
+         */
         public Paragraph(String text) {
             if (text == null || text.isEmpty()) {
                 ptr = null;
@@ -543,6 +580,11 @@ public class Font implements Disposable {
         return ascender;
     }
 
+    /**
+     * Gets the font's unscaled descender.
+     *
+     * @return the unscaled descender
+     */
     public float getUnscaledDescender() {
         return descender;
     }
@@ -750,6 +792,12 @@ public class Font implements Disposable {
         drawText(batch, layout, x, y);
     }
 
+    /**
+     * Releases the native font resource owned by this font.
+     *
+     * <p>Any glyphs cached in the associated {@link GlyphAtlas} remain valid as long as
+     * the underlying typeface is alive. The font cannot be used after disposal.</p>
+     */
     @Override
     public void dispose() {
         Matn.matn_font_destroy(mtFont);

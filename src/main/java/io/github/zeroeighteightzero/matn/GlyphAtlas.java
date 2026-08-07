@@ -26,6 +26,9 @@ import static com.badlogic.gdx.graphics.GL32.GL_TEXTURE_BUFFER;
  */
 public class GlyphAtlas implements Disposable {
 
+    /**
+     * A single square texture page within the atlas holding rasterized glyphs.
+     */
     public static class Page {
 
         /**
@@ -34,6 +37,14 @@ public class GlyphAtlas implements Disposable {
         public static class Rect {
             public final int x, y, width, height;
 
+            /**
+             * Creates a rectangle with the given placement and size.
+             *
+             * @param x the left edge
+             * @param y the bottom edge
+             * @param width the rectangle width
+             * @param height the rectangle height
+             */
             public Rect(int x, int y, int width, int height) {
                 this.x = x;
                 this.y = y;
@@ -70,6 +81,9 @@ public class GlyphAtlas implements Disposable {
 
     }
 
+    /**
+     * A GPU-side page (buffer object or texture) holding encoded GPU glyphs.
+     */
     public static class GPUPage {
         protected final IntArray buf = new IntArray(1);
         protected final int tex;
@@ -85,11 +99,16 @@ public class GlyphAtlas implements Disposable {
         }
     }
 
+    /** The rasterized atlas pages managed by this atlas. */
     public Array<Page> pages = new Array<>(1);
+    /** The GPU glyph pages managed by this atlas. */
     public Array<GPUPage> gpuPages = new Array<>(1);
     private final LongMap<GPUGlyph> gpuGlyphMap = new LongMap<>();
+    /** Mapping from glyph hash to its cached rasterized glyph. */
     public LongMap<Glyph> glyphMap = new LongMap<>();
+    /** The width and height of each square atlas page in pixels. */
     public final int pageSize;
+    /** The pixel format used by atlas textures. */
     public final Pixmap.Format format;
 
     private static final int GPU_TEXTURE_WIDTH = 512;

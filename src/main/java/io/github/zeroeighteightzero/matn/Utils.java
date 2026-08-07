@@ -2,8 +2,19 @@ package io.github.zeroeighteightzero.matn;
 
 import com.badlogic.gdx.math.MathUtils;
 
+/**
+ * Static helpers for hashing glyphs and deriving glyph rasterization sizes.
+ */
 public class Utils {
 
+    /**
+     * Computes a hash identifying a glyph for a given font and its current variation,
+     * synthetic-bold, and synthetic-slant settings.
+     *
+     * @param font the font to hash for
+     * @param glyphID the font-specific glyph identifier
+     * @return a hash combining the font state and glyph identifier
+     */
     public static long glyphHash(Font font, long glyphID) {
         long h = 1L;
         float[] vars = font.getVarCoords();
@@ -21,12 +32,29 @@ public class Utils {
         return h;
     }
 
+    /**
+     * Computes a hash identifying a glyph for a given font state and rasterization size.
+     *
+     * @param font the font to hash for
+     * @param glyphID the font-specific glyph identifier
+     * @param size the (stepped) rasterization size
+     * @return a hash combining the font state, glyph identifier, and size
+     */
     public static long glyphHashWithSize(Font font, long glyphID, int size) {
         long h = glyphHash(font, glyphID);
         h = 31L * h + size;
         return h;
     }
 
+    /**
+     * Steps a requested font size to the discrete rasterization size used by the atlas.
+     *
+     * <p>Sizes below 12 are returned unchanged, sizes below 120 are stepped to a multiple
+     * of 6, and larger sizes are stepped to a multiple of 12.</p>
+     *
+     * @param fontSize the requested font size
+     * @return the stepped rasterization size
+     */
     public static int getFontSize(int fontSize) {
         if (fontSize < 12) {
             return fontSize;

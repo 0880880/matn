@@ -1,5 +1,12 @@
 package io.github.zeroeighteightzero.matn;
 
+/**
+ * A rasterized glyph cached inside a {@link GlyphAtlas} page.
+ *
+ * <p>Describes where in an atlas page the glyph's pixels live, plus its texture
+ * coordinates, pixel dimensions, and bearing. Instances are created and cached by a
+ * {@link GlyphAtlas} and should not be constructed directly by callers.</p>
+ */
 public class Glyph {
 
     public final long glyphID;
