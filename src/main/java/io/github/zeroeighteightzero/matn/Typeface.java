@@ -166,8 +166,8 @@ public class Typeface implements Disposable {
      * Gets a variable-font axis by its OpenType tag.
      *
      * @param tag the four-character OpenType variation-axis tag
-     * @return the matching variable-font axis, or {@code null} if {@code tag} is not four characters long
-     * @throws RuntimeException if this typeface does not contain the specified axis
+     * @return the matching variable-font axis, or {@code null} if {@code tag} is
+     *         not four characters long or this typeface does not contain the axis
      */
     public VarAxis getVariableAxis(String tag) {
         if (tag.length() != 4) {
@@ -178,7 +178,7 @@ public class Typeface implements Disposable {
                 return v;
             }
         }
-        throw new RuntimeException("Typeface does not have '" + tag + "' tag");
+        return null;
     }
 
     /**
