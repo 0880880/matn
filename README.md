@@ -14,7 +14,7 @@ Create a `Typeface`
 
 <!-- @formatter:off -->
 ```java
-Typeface face = Typeface.fromFile(myFontFile);
+Typeface face = new Typeface(myFontFile);
 ```
 
 Create an atlas
@@ -26,7 +26,7 @@ GlyphAtlas atlas = new GlyphAtlas();
 Create a `Font` from the `Typeface` and set options
 
 ```java
-Font boldFont = face.createFont(atlas);
+Font boldFont = new Font(face, atlas);
 
 boldFont.weight(800); // Sets the OpenType MM weight
 // if doesn't have weight/variations
@@ -45,5 +45,12 @@ public void render() {
 
     batch.end();
 }
+```
+
+After use:
+```java
+font.dispose();
+atlas.dispose();
+face.dispose();
 ```
 <!-- @formatter:on -->
