@@ -30,6 +30,7 @@ public class Main implements ApplicationListener {
 
     GlyphAtlas atlas;
 
+    Typeface face;
     Font[] fonts;
     Layout[] layouts;
 
@@ -59,13 +60,13 @@ public class Main implements ApplicationListener {
 
         atlas = new GlyphAtlas(512, Pixmap.Format.RGBA8888);
 
-        Typeface face = Typeface.fromFile(Gdx.files.internal("Inter/Inter-VariableFont_opsz,wght.ttf"));
+        Typeface face = new Typeface("Inter/Inter-VariableFont_opsz,wght.ttf");
 
         gpuBatch = new GPUTextBatch();
 
         int numWeights = 8;
-        float weightStart = face.varAxes[1].min;
-        float weightEnd = face.varAxes[1].max;
+        float weightStart = face.weight().min;
+        float weightEnd = face.weight().max;
         float step = (weightEnd - weightStart) / (numWeights - 1);
 
         fonts = new Font[numWeights];
@@ -74,8 +75,10 @@ public class Main implements ApplicationListener {
         for (int i = 0; i < numWeights; i++) {
             float w = weightStart + i * step;
 
-            Font font = face.createFont(atlas);
-            font.opticalSize(face.varAxes[0].max);
+            Font font = new Font(face, atlas);
+            if (face.opticalSize() != null) {
+                font.opticalSize(face.opticalSize().max);
+            }
             font.weight(w);
             font.applyVariation();
 
@@ -236,5 +239,10 @@ public class Main implements ApplicationListener {
 
     @Override
     public void dispose() {
+        for (Font font : fonts) {
+            font.dispose();
+        }
+        atlas.dispose();
+        face.dispose();
     }
 }
