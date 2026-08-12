@@ -412,6 +412,17 @@ public class Font implements Disposable {
         return res;
     }
 
+    public static class GlyphRasterData {
+        public final Pixmap pixmap;
+        public final int top, left;
+
+        public GlyphRasterData(Pixmap pixmap, int top, int left) {
+            this.pixmap = pixmap;
+            this.top = top;
+            this.left = left;
+        }
+    }
+
     /**
      * Rasterizes a glyph into a pixmap at the requested size.
      *
@@ -419,7 +430,7 @@ public class Font implements Disposable {
      * @param size the rasterization size
      * @return a newly created pixmap containing the rasterized glyph
      */
-    public Pixmap rasterize(long glyphID, int size) {
+    public GlyphRasterData rasterize(long glyphID, int size) {
         PointerPointer<MatnBlob.MatnBlobPointer> ptr = new PointerPointer<>(MatnBlob.MatnBlobPointer::new);
         Matn.matn_rasterize_glyph(mtFont, glyphID, size, ptr);
         MatnBlob.MatnBlobPointer blob = ptr.getValue();
@@ -462,9 +473,11 @@ public class Font implements Disposable {
             }
         }
 
+        GlyphRasterData rasterData = new GlyphRasterData(pixmap, Matn.matn_blob_get_top(blob), Matn.matn_blob_get_left(blob));
+
         Matn.matn_blob_destroy(blob);
 
-        return pixmap;
+        return rasterData;
     }
 
     /**

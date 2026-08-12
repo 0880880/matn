@@ -282,13 +282,15 @@ public class GlyphAtlas implements Disposable {
             return glyphMap.get(hash);
         }
         Font.GlyphMetrics metrics = font.getGlyphMetrics(glyphID);
-        Pixmap pixmap = font.rasterize(glyphID, steppedSize);
+        Font.GlyphRasterData rasterData = font.rasterize(glyphID, steppedSize);
+        Pixmap pixmap = rasterData.pixmap;
+        int left = rasterData.left, top = rasterData.top;
         int width = pixmap.getWidth(), height = pixmap.getHeight();
 
         // Glyphs with zero area (e.g., space) don't consume atlas space.
         if (width == 0 || height == 0) {
             pixmap.dispose();
-            Glyph glyph = new Glyph(this, glyphID, steppedSize, 0, 0, 0, 0, 0, metrics.bearingX, metrics.bearingY);
+            Glyph glyph = new Glyph(this, glyphID, steppedSize, 0, 0, 0, 0, 0, metrics.bearingX, metrics.bearingY, top, left);
             glyphMap.put(hash, glyph);
             return glyph;
         }
@@ -309,7 +311,7 @@ public class GlyphAtlas implements Disposable {
                 page.place(pixmap, x, y);
 
                 Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.indexOf(page, true),
-                        x, y, width, height, metrics.bearingX, metrics.bearingY);
+                        x, y, width, height, metrics.bearingX, metrics.bearingY, top, left);
                 glyphMap.put(hash, glyph);
                 pixmap.dispose();
                 return glyph;
@@ -322,7 +324,7 @@ public class GlyphAtlas implements Disposable {
         newPage.placed.add(new Page.Rect(0, 0, width, height));
         newPage.place(pixmap, 0, 0);
 
-        Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.size - 1, 0, 0, width, height, metrics.bearingX, metrics.bearingY);
+        Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.size - 1, 0, 0, width, height, metrics.bearingX, metrics.bearingY, top, left);
         glyphMap.put(hash, glyph);
         pixmap.dispose();
         return glyph;

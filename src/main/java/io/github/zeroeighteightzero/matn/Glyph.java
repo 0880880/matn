@@ -15,8 +15,9 @@ public class Glyph {
     public final int x, y, width, height;
     public final float u, v, u2, v2;
     public final float bearingX, bearingY;
+    public final int top, left;
 
-    Glyph(GlyphAtlas atlas, long glyphID, int size, int page, int x, int y, int width, int height, float bearingX, float bearingY) {
+    Glyph(GlyphAtlas atlas, long glyphID, int size, int page, int x, int y, int width, int height, float bearingX, float bearingY, int top, int left) {
         this.glyphID = glyphID;
         this.size = size;
         this.page = page;
@@ -31,5 +32,7 @@ public class Glyph {
         this.v2 = this.v + height * scale;
         this.bearingX = bearingX;
         this.bearingY = bearingY;
+        this.top = top;
+        this.left = left;
     }
 }
