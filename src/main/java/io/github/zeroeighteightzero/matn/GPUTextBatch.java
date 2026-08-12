@@ -259,41 +259,44 @@ public class GPUTextBatch implements Disposable {
 
         float color = this.colorPacked;
 
+        final float minPPEM = 10f;
+        final float pad = .5f * glyph.upem / minPPEM;
+
         int idx = this.idx;
-        vertices[idx] = fx1; // a_position
-        vertices[idx + 1] = fy1; // a_position
-        vertices[idx + 2] = u; // a_texCoords0
-        vertices[idx + 3] = v; // a_texCoords0
+        vertices[idx] = fx1 + -1 * pad * scale; // a_position
+        vertices[idx + 1] = fy1 + 1 * pad * scale; // a_position
+        vertices[idx + 2] = u + -1 * pad; // a_texCoords0
+        vertices[idx + 3] = v + 1 * pad; // a_texCoords0
         vertices[idx + 4] = color; // a_color
         vertices[idx + 5] = -1; // a_normal
         vertices[idx + 6] = 1; // a_normal
         vertices[idx + 7] = emPerPos; // a_emPerPos
         vertices[idx + 8] = Float.intBitsToFloat(glyphLoc); // a_glyphLoc
 
-        vertices[idx + 9] = fx1; // a_position
-        vertices[idx + 10] = fy2; // a_position
-        vertices[idx + 11] = u; // a_texCoords0
-        vertices[idx + 12] = v2; // a_texCoords0
+        vertices[idx + 9] = fx1 + -1 * pad * scale; // a_position
+        vertices[idx + 10] = fy2 + -1 * pad * scale; // a_position
+        vertices[idx + 11] = u + -1 * pad; // a_texCoords0
+        vertices[idx + 12] = v2 + -1 * pad; // a_texCoords0
         vertices[idx + 13] = color; // a_color
         vertices[idx + 14] = -1; // a_normal
         vertices[idx + 15] = -1; // a_normal
         vertices[idx + 16] = emPerPos; // a_emPerPos
         vertices[idx + 17] = Float.intBitsToFloat(glyphLoc); // a_glyphLoc
 
-        vertices[idx + 18] = fx2; // a_position
-        vertices[idx + 19] = fy2; // a_position
-        vertices[idx + 20] = u2; // a_texCoords0
-        vertices[idx + 21] = v2; // a_texCoords0
+        vertices[idx + 18] = fx2 + 1 * pad * scale; // a_position
+        vertices[idx + 19] = fy2 + -1 * pad * scale; // a_position
+        vertices[idx + 20] = u2 + 1 * pad; // a_texCoords0
+        vertices[idx + 21] = v2 + -1 * pad; // a_texCoords0
         vertices[idx + 22] = color; // a_color
         vertices[idx + 23] = 1; // a_normal
         vertices[idx + 24] = -1; // a_normal
         vertices[idx + 25] = emPerPos; // a_emPerPos
         vertices[idx + 26] = Float.intBitsToFloat(glyphLoc); // a_glyphLoc
 
-        vertices[idx + 27] = fx2; // a_position
-        vertices[idx + 28] = fy1; // a_position
-        vertices[idx + 29] = u2; // a_texCoords0
-        vertices[idx + 30] = v; // a_texCoords0
+        vertices[idx + 27] = fx2 + 1 * pad * scale; // a_position
+        vertices[idx + 28] = fy1 + 1 * pad * scale; // a_position
+        vertices[idx + 29] = u2 + 1 * pad; // a_texCoords0
+        vertices[idx + 30] = v + 1 * pad; // a_texCoords0
         vertices[idx + 31] = color; // a_color
         vertices[idx + 32] = 1; // a_normal
         vertices[idx + 33] = 1; // a_normal
