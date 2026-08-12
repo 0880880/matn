@@ -699,8 +699,6 @@ public class Font implements Disposable {
         Matn.matn_font_set_synthetic_slant(mtFont, slant);
     }
 
-    private final Matrix4 mat = new Matrix4();
-
     /**
      * Draws a single glyph using a standard LibGDX batch.
      *
@@ -720,13 +718,27 @@ public class Font implements Disposable {
         float height = glyph.height * scale;
         float cx = width * .5f;
         float cy = height * .5f;
-        mat.idt();
-        mat.translate(x + cx, y + cy, 0);
-        mat.rotateRad(0, 0, 1, rot);
-        mat.scale(sx, sy, 1);
-        mat.translate(-cx, -cy, 0);
-        batch.setTransformMatrix(mat);
-        batch.draw(atlas.pages.get(glyph.page).texture, glyph.left * scale, glyph.top * scale, width, height, glyph.u, glyph.v, glyph.u2, glyph.v2);
+        float drawX = glyph.left * scale + x;
+        float drawY = glyph.top * scale + y;
+
+        batch.draw(
+                atlas.pages.get(glyph.page).texture,
+                drawX,
+                drawY,
+                cx,
+                cy,
+                width,
+                height,
+                sx,
+                sy,
+                rot * MathUtils.radiansToDegrees,
+                glyph.x,
+                glyph.y,
+                glyph.width,
+                glyph.height,
+                false,
+                false
+        );
     }
 
     /**

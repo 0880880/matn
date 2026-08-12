@@ -324,7 +324,7 @@ public class GlyphAtlas implements Disposable {
         newPage.placed.add(new Page.Rect(0, 0, width, height));
         newPage.place(pixmap, 0, 0);
 
-        Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.size - 1, 0, 0, width, height, metrics.bearingX, metrics.bearingY, top, left);
+        Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.size - 1, 0, 0, width, height, top, left);
         glyphMap.put(hash, glyph);
         pixmap.dispose();
         return glyph;
