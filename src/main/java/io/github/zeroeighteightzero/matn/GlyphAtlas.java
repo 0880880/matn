@@ -281,7 +281,6 @@ public class GlyphAtlas implements Disposable {
         if (glyphMap.containsKey(hash)) {
             return glyphMap.get(hash);
         }
-        Font.GlyphMetrics metrics = font.getGlyphMetrics(glyphID);
         Font.GlyphRasterData rasterData = font.rasterize(glyphID, steppedSize);
         Pixmap pixmap = rasterData.pixmap;
         int left = rasterData.left, top = rasterData.top;
@@ -290,7 +289,7 @@ public class GlyphAtlas implements Disposable {
         // Glyphs with zero area (e.g., space) don't consume atlas space.
         if (width == 0 || height == 0) {
             pixmap.dispose();
-            Glyph glyph = new Glyph(this, glyphID, steppedSize, 0, 0, 0, 0, 0, metrics.bearingX, metrics.bearingY, top, left);
+            Glyph glyph = new Glyph(this, glyphID, steppedSize, 0, 0, 0, 0, 0, top, left);
             glyphMap.put(hash, glyph);
             return glyph;
         }
@@ -311,7 +310,7 @@ public class GlyphAtlas implements Disposable {
                 page.place(pixmap, x, y);
 
                 Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.indexOf(page, true),
-                        x, y, width, height, metrics.bearingX, metrics.bearingY, top, left);
+                        x, y, width, height, top, left);
                 glyphMap.put(hash, glyph);
                 pixmap.dispose();
                 return glyph;
