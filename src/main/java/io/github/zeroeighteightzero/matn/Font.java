@@ -726,7 +726,7 @@ public class Font implements Disposable {
         mat.scale(sx, sy, 1);
         mat.translate(-cx, -cy, 0);
         batch.setTransformMatrix(mat);
-        batch.draw(atlas.pages.get(glyph.page).texture, glyph.bearingX * fontSize, -glyph.height * scale + glyph.bearingY * fontSize, width, height, glyph.u, glyph.v, glyph.u2, glyph.v2);
+        batch.draw(atlas.pages.get(glyph.page).texture, glyph.left * scale, glyph.top * scale, width, height, glyph.u, glyph.v, glyph.u2, glyph.v2);
     }
 
     /**
