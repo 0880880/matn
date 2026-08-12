@@ -737,7 +737,7 @@ public class Font implements Disposable {
                 glyph.width,
                 glyph.height,
                 false,
-                false
+                true
         );
     }
 
