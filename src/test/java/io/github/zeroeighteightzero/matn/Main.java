@@ -51,6 +51,14 @@ public class Main implements ApplicationListener {
 
     String text = "The quick brown fox jumps over the lazy dog.";
 
+    boolean useGPU = true;
+
+    private void updateText() {
+        for (Layout layout : layouts) {
+            layout.setText(text);
+        }
+    }
+
     @Override
     public void create() {
 
@@ -113,9 +121,7 @@ public class Main implements ApplicationListener {
                 } else {
                     text += character;
                 }
-                for (Layout layout : layouts) {
-                    layout.setText(text);
-                }
+                updateText();
                 return true;
             }
 
@@ -215,17 +221,40 @@ public class Main implements ApplicationListener {
         camera.update();
         viewport.apply();
 
-        gpuBatch.setProjectionMatrix(camera.combined);
-        gpuBatch.begin();
-        gpuBatch.setColor(Color.WHITE);
-
-        for (int i = 0; i < fonts.length; ++i) {
-            Font font = fonts[i];
-            Layout layout = layouts[i];
-            font.drawGPUText(gpuBatch, layout, 32, -32 - font.getLineHeight(fontSize) * i + Gdx.graphics.getHeight() - font.getAscender(fontSize));
+        if (Gdx.input.isKeyJustPressed(Input.Keys.G) && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
+            useGPU = !useGPU;
         }
 
-        gpuBatch.end();
+        if (Gdx.input.isKeyJustPressed(Input.Keys.C) && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
+            text = "";
+            updateText();
+        }
+
+        if (useGPU) {
+            gpuBatch.setProjectionMatrix(camera.combined);
+            gpuBatch.begin();
+            gpuBatch.setColor(Color.WHITE);
+
+            for (int i = 0; i < fonts.length; ++i) {
+                Font font = fonts[i];
+                Layout layout = layouts[i];
+                font.drawGPUText(gpuBatch, layout, 32, -32 - font.getLineHeight(fontSize) * i + Gdx.graphics.getHeight() - font.getAscender(fontSize));
+            }
+
+            gpuBatch.end();
+        } else {
+            batch.setProjectionMatrix(camera.combined);
+            batch.begin();
+            batch.setColor(Color.WHITE);
+
+            for (int i = 0; i < fonts.length; ++i) {
+                Font font = fonts[i];
+                Layout layout = layouts[i];
+                font.drawText(batch, layout, 32, -32 - font.getLineHeight(fontSize) * i + Gdx.graphics.getHeight() - font.getAscender(fontSize));
+            }
+
+            batch.end();
+        }
 
     }
 
