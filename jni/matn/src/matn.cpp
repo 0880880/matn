@@ -22,15 +22,6 @@ static hb_gpu_draw_t *g_hb_gpu_draw;
 static hb_raster_draw_t *g_hb_raster_draw;
 static hb_raster_paint_t *g_hb_raster_paint;
 
-static void init_hb() {
-  g_hb_gpu_draw = hb_gpu_draw_create_or_fail();
-  g_hb_raster_draw = hb_raster_draw_create_or_fail();
-  g_hb_raster_paint = hb_raster_paint_create_or_fail();
-
-  hb_raster_draw_set_transform(g_hb_raster_draw, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-  hb_raster_paint_set_transform(g_hb_raster_paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-}
-
 static hb_gpu_draw_t *get_hb_gpu_draw() {
   static hb_gpu_draw_t *s = []() {
     g_hb_gpu_draw = hb_gpu_draw_create_or_fail();
