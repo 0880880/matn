@@ -130,4 +130,10 @@ jnigen {
     }
 }
 
+tasks.configureEach {
+    if (name.startsWith("jnigenPackage")) {
+        onlyIf { false }
+    }
+}
+
 apply from: 'publish.gradle'
