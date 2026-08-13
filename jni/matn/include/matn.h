@@ -107,6 +107,11 @@ int matn_typeface_has_variations(MatnTypeface *face);
 
 uint32_t matn_typeface_get_upem(MatnTypeface *face);
 
+float matn_typeface_get_strikeout_position(const MatnTypeface *face);
+float matn_typeface_get_strikeout_thickness(const MatnTypeface *face);
+float matn_typeface_get_underline_position(const MatnTypeface *face);
+float matn_typeface_get_underline_thickness(const MatnTypeface *face);
+
 int matn_typeface_get_var_axis_count(const MatnTypeface *face);
 int matn_typeface_get_var_axes(const MatnTypeface *face, MatnVarAxis *out_axes,
                              int max_axes);
@@ -133,6 +138,7 @@ void matn_font_set_synthetic_slant(const MatnFont *font, float slant);
 float matn_font_get_ascender(const MatnFont *font);
 float matn_font_get_descender(const MatnFont *font);
 float matn_font_get_line_gap(const MatnFont *font);
+
 uint32_t matn_font_get_size_px(const MatnFont *font);
 
 uint32_t matn_font_get_glyph_id(const MatnFont *font, uint32_t codepoint);

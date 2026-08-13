@@ -63,6 +63,9 @@ struct MatnTypeface {
   uint32_t upem;
   float inv_upem;
 
+  float strikeout_thickness, strikeout_position;
+  float underline_thickness, underline_position;
+
   int font_count = 0;
 
   ~MatnTypeface() {
@@ -135,6 +138,12 @@ struct MatnTextRuns {
   std::vector<uint32_t> lengths;
   std::vector<unsigned char> levels;
 };
+
+static int16_t
+read_i16_be(const uint8_t *p)
+{
+    return (int16_t)(((uint16_t)p[0] << 8) | p[1]);
+}
 
 static void populate_face(MatnTypeface *face) {
   face->has_color = hb_ot_color_has_layers(face->hb_face) ||
@@ -211,6 +220,54 @@ static void populate_face(MatnTypeface *face) {
         static_cast<int>(coords_len)
     });
   }
+
+  { // OS/2 https://learn.microsoft.com/en-us/typography/opentype/spec/os2
+    hb_blob_t *blob = hb_face_reference_table(face->hb_face, HB_TAG('O','S','/','2'));
+
+    unsigned int length;
+    const uint8_t *data = reinterpret_cast<const uint8_t *>(hb_blob_get_data(blob, &length));
+
+    if (length > 30) {
+      int16_t yStrikeoutSize = read_i16_be(data + 26);
+      int16_t yStrikeoutPosition = read_i16_be(data + 28);
+
+      face->strikeout_thickness = yStrikeoutSize * face->inv_upem;
+      face->strikeout_position = yStrikeoutPosition * face->inv_upem;
+    } else {
+      face->strikeout_thickness = 0;
+      face->strikeout_position = 0;
+    }
+
+    hb_blob_destroy(blob);
+  }
+
+  { // post https://learn.microsoft.com/en-us/typography/opentype/spec/post
+    hb_blob_t *blob = hb_face_reference_table(face->hb_face, HB_TAG('p','o','s','t'));
+
+    unsigned int length;
+    const uint8_t *data = reinterpret_cast<const uint8_t *>(hb_blob_get_data(blob, &length));
+
+    if (length > 0) {
+      int16_t underlinePosition = read_i16_be(data + 8);
+      int16_t underlineThickness = read_i16_be(data + 10);
+
+      face->underline_position = underlinePosition * face->inv_upem;
+      face->underline_thickness = underlineThickness * face->inv_upem;
+    } else {
+      face->underline_position = 0;
+      face->underline_thickness = 0;
+    }
+
+    if (face->underline_position == 0) {
+      face->underline_position = face->strikeout_position;
+      face->underline_thickness = face->strikeout_thickness;
+    } else if (face->strikeout_position == 0) {
+       face->strikeout_position = face->underline_position;
+       face->strikeout_thickness = face->underline_thickness;
+     }
+
+    hb_blob_destroy(blob);
+  }
 }
 
 MatnResult matn_typeface_from_file(const char *path, int index,
@@ -278,6 +335,22 @@ int matn_typeface_has_variations(MatnTypeface *face) {
 
 uint32_t matn_typeface_get_upem(MatnTypeface *face) {
   return face->upem;
+}
+
+float matn_typeface_get_strikeout_position(const MatnTypeface *face) {
+  return face ? face->strikeout_position : 0;
+}
+
+float matn_typeface_get_strikeout_thickness(const MatnTypeface *face) {
+  return face ? face->strikeout_thickness : 0;
+}
+
+float matn_typeface_get_underline_position(const MatnTypeface *face) {
+  return face ? face->underline_position : 0;
+}
+
+float matn_typeface_get_underline_thickness(const MatnTypeface *face) {
+  return face ? face->underline_thickness : 0;
 }
 
 int matn_typeface_get_var_axis_count(const MatnTypeface *face) {
