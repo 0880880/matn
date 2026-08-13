@@ -19,7 +19,7 @@ before_install:
     do
       curl --fail --location --retry 3 \
         "$base_url/matn-natives-$platform.jar" \
-        --output "$output_dir/math-natives-$platform.jar"
+        --output "$output_dir/matn-natives-$platform.jar"
     done
 
     find "$output_dir" -type f -name '*.jar' -print
