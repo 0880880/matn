@@ -68,9 +68,9 @@ public class Main implements ApplicationListener {
 
         atlas = new GlyphAtlas(512, Pixmap.Format.RGBA8888);
 
-        Typeface face = new Typeface("Inter/Inter-VariableFont_opsz,wght.ttf");
+        face = new Typeface("Inter/Inter-VariableFont_opsz,wght.ttf");
 
-        gpuBatch = new GPUTextBatch();
+        gpuBatch = new GPUGlyphBatch();
 
         int numWeights = 8;
         float weightStart = face.weight().min;
