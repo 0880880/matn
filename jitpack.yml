@@ -1,0 +1,28 @@
+jdk:
+  - openjdk17
+
+before_install:
+  - |
+    set -e
+    base_url="https://github.com/0880880/matn/releases/latest/download"
+    output_dir="build/jnigen/libs"
+
+    mkdir -p "$output_dir"
+
+    for platform in \
+      arm64-v8a \
+      armeabi-v7a \
+      desktop \
+      ios \
+      x86 \
+      x86_64
+    do
+      curl --fail --location --retry 3 \
+        "$base_url/matn-$platform.jar" \
+        --output "$output_dir/math-natives-$platform.jar"
+    done
+
+    find "$output_dir" -type f -name '*.jar' -print
+
+install:
+  - ./gradlew build publishToMavenLocal
