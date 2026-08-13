@@ -18,7 +18,7 @@ before_install:
       x86_64
     do
       curl --fail --location --retry 3 \
-        "$base_url/matn-$platform.jar" \
+        "$base_url/matn-natives-$platform.jar" \
         --output "$output_dir/math-natives-$platform.jar"
     done
 
