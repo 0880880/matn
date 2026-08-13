@@ -2,15 +2,25 @@ package com.github.zeroeighteightzero.matn._native;
 
 import com.badlogic.gdx.jnigen.runtime.CHandler;
 import com.badlogic.gdx.jnigen.runtime.c.CXXException;
-import com.badlogic.gdx.jnigen.runtime.pointer.FloatPointer;
-import com.badlogic.gdx.jnigen.runtime.pointer.PointerPointer;
-import com.badlogic.gdx.jnigen.runtime.pointer.integer.*;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
-import com.github.zeroeighteightzero.matn._native.enums.MatnGPU_LANGUAGE;
-import com.github.zeroeighteightzero.matn._native.enums.MatnPixelFormat;
 import com.github.zeroeighteightzero.matn._native.enums.MatnResult;
-import com.github.zeroeighteightzero.matn._native.structs.*;
-import com.github.zeroeighteightzero.matn._native.structs.*;
+import com.badlogic.gdx.jnigen.runtime.pointer.integer.BytePointer;
+import com.badlogic.gdx.jnigen.runtime.pointer.PointerPointer;
+import com.github.zeroeighteightzero.matn._native.structs.MatnTypeface;
+import com.github.zeroeighteightzero.matn._native.structs.MatnVarAxis;
+import com.github.zeroeighteightzero.matn._native.structs.MatnVarInstance;
+import com.github.zeroeighteightzero.matn._native.structs.MatnFont;
+import com.badlogic.gdx.jnigen.runtime.pointer.FloatPointer;
+import com.badlogic.gdx.jnigen.runtime.pointer.integer.SIntPointer;
+import com.github.zeroeighteightzero.matn._native.structs.MatnGlyphMetrics;
+import com.badlogic.gdx.jnigen.runtime.pointer.integer.UShortPointer;
+import com.badlogic.gdx.jnigen.runtime.pointer.integer.UIntPointer;
+import com.github.zeroeighteightzero.matn._native.structs.MatnBufferView;
+import com.github.zeroeighteightzero.matn._native.structs.MatnGPU_Blob;
+import com.github.zeroeighteightzero.matn._native.enums.MatnGPU_LANGUAGE;
+import com.github.zeroeighteightzero.matn._native.structs.MatnBlob;
+import com.badlogic.gdx.jnigen.runtime.pointer.integer.UBytePointer;
+import com.github.zeroeighteightzero.matn._native.enums.MatnPixelFormat;
 
 public final class Matn {
 
@@ -111,6 +121,50 @@ static jclass cxxExceptionClass = NULL;
     public static native long matn_typeface_get_upem_internal(long face);/*
     	HANDLE_JAVA_EXCEPTION_START()
     	return (jlong)matn_typeface_get_upem((MatnTypeface *)face);
+    	HANDLE_JAVA_EXCEPTION_END()
+    	return 0;
+    */
+
+    public static float matn_typeface_get_strikeout_position(MatnTypeface.MatnTypefacePointer face) {
+        return matn_typeface_get_strikeout_position_internal(face.getPointer());
+    }
+
+    public static native float matn_typeface_get_strikeout_position_internal(long face);/*
+    	HANDLE_JAVA_EXCEPTION_START()
+    	return (jfloat)matn_typeface_get_strikeout_position((const MatnTypeface *)face);
+    	HANDLE_JAVA_EXCEPTION_END()
+    	return 0;
+    */
+
+    public static float matn_typeface_get_strikeout_thickness(MatnTypeface.MatnTypefacePointer face) {
+        return matn_typeface_get_strikeout_thickness_internal(face.getPointer());
+    }
+
+    public static native float matn_typeface_get_strikeout_thickness_internal(long face);/*
+    	HANDLE_JAVA_EXCEPTION_START()
+    	return (jfloat)matn_typeface_get_strikeout_thickness((const MatnTypeface *)face);
+    	HANDLE_JAVA_EXCEPTION_END()
+    	return 0;
+    */
+
+    public static float matn_typeface_get_underline_position(MatnTypeface.MatnTypefacePointer face) {
+        return matn_typeface_get_underline_position_internal(face.getPointer());
+    }
+
+    public static native float matn_typeface_get_underline_position_internal(long face);/*
+    	HANDLE_JAVA_EXCEPTION_START()
+    	return (jfloat)matn_typeface_get_underline_position((const MatnTypeface *)face);
+    	HANDLE_JAVA_EXCEPTION_END()
+    	return 0;
+    */
+
+    public static float matn_typeface_get_underline_thickness(MatnTypeface.MatnTypefacePointer face) {
+        return matn_typeface_get_underline_thickness_internal(face.getPointer());
+    }
+
+    public static native float matn_typeface_get_underline_thickness_internal(long face);/*
+    	HANDLE_JAVA_EXCEPTION_START()
+    	return (jfloat)matn_typeface_get_underline_thickness((const MatnTypeface *)face);
     	HANDLE_JAVA_EXCEPTION_END()
     	return 0;
     */

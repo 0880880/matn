@@ -2,6 +2,7 @@ package com.github.zeroeighteightzero.matn._native.enums;
 
 import com.badlogic.gdx.jnigen.runtime.pointer.EnumPointer;
 import com.badlogic.gdx.jnigen.runtime.c.CEnum;
+import com.badlogic.gdx.jnigen.runtime.CHandler;
 import com.badlogic.gdx.jnigen.runtime.pointer.VoidPointer;
 
 public enum MatnPixelFormat implements CEnum {
@@ -58,11 +59,11 @@ public enum MatnPixelFormat implements CEnum {
         }
 
         public MatnPixelFormat getEnumValue(int index) {
-            return getByIndex((int) getBufPtr().getInt(index * __size));
+            return getByIndex((int) getBufPtr().getUInt(index * __size));
         }
 
         public void setEnumValue(MatnPixelFormat value, int index) {
-            getBufPtr().setInt(index * __size, value.getIndex());
+            getBufPtr().setUInt(index * __size, value.getIndex());
         }
     }
 }

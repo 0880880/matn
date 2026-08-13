@@ -2,6 +2,7 @@ package com.github.zeroeighteightzero.matn._native.enums;
 
 import com.badlogic.gdx.jnigen.runtime.pointer.EnumPointer;
 import com.badlogic.gdx.jnigen.runtime.c.CEnum;
+import com.badlogic.gdx.jnigen.runtime.CHandler;
 import com.badlogic.gdx.jnigen.runtime.pointer.VoidPointer;
 
 public enum MatnResult implements CEnum {

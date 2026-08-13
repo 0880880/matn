@@ -2,6 +2,7 @@ package com.github.zeroeighteightzero.matn._native.enums;
 
 import com.badlogic.gdx.jnigen.runtime.pointer.EnumPointer;
 import com.badlogic.gdx.jnigen.runtime.c.CEnum;
+import com.badlogic.gdx.jnigen.runtime.CHandler;
 import com.badlogic.gdx.jnigen.runtime.pointer.VoidPointer;
 
 public enum MatnGPU_LANGUAGE implements CEnum {
@@ -62,11 +63,11 @@ public enum MatnGPU_LANGUAGE implements CEnum {
         }
 
         public MatnGPU_LANGUAGE getEnumValue(int index) {
-            return getByIndex((int) getBufPtr().getInt(index * __size));
+            return getByIndex((int) getBufPtr().getUInt(index * __size));
         }
 
         public void setEnumValue(MatnGPU_LANGUAGE value, int index) {
-            getBufPtr().setInt(index * __size, value.getIndex());
+            getBufPtr().setUInt(index * __size, value.getIndex());
         }
     }
 }

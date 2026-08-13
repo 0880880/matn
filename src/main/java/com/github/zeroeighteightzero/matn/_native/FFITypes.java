@@ -21,6 +21,8 @@ public class FFITypes {
 		static_assert(alignof(const uint16_t) == 2, "Type const uint16_t has unexpected alignment.");
 		static_assert(sizeof(const uint8_t) == 1, "Type const uint8_t has unexpected size.");
 		static_assert(alignof(const uint8_t) == 1, "Type const uint8_t has unexpected alignment.");
+		static_assert(sizeof(unsigned int) == 4, "Type unsigned int has unexpected size.");
+		static_assert(alignof(unsigned int) == 4, "Type unsigned int has unexpected alignment.");
 		static_assert(sizeof(const char) == 1, "Type const char has unexpected size.");
 		static_assert(alignof(const char) == 1, "Type const char has unexpected alignment.");
 		static_assert(sizeof(char) == 1, "Type char has unexpected size.");
@@ -77,6 +79,8 @@ public class FFITypes {
 		static_assert(alignof(const uint16_t) == 2, "Type const uint16_t has unexpected alignment.");
 		static_assert(sizeof(const uint8_t) == 1, "Type const uint8_t has unexpected size.");
 		static_assert(alignof(const uint8_t) == 1, "Type const uint8_t has unexpected alignment.");
+		static_assert(sizeof(unsigned int) == 4, "Type unsigned int has unexpected size.");
+		static_assert(alignof(unsigned int) == 4, "Type unsigned int has unexpected alignment.");
 		static_assert(sizeof(const char) == 1, "Type const char has unexpected size.");
 		static_assert(alignof(const char) == 1, "Type const char has unexpected alignment.");
 		static_assert(sizeof(char) == 1, "Type char has unexpected size.");
@@ -133,6 +137,8 @@ public class FFITypes {
 		static_assert(alignof(const uint16_t) == 2, "Type const uint16_t has unexpected alignment.");
 		static_assert(sizeof(const uint8_t) == 1, "Type const uint8_t has unexpected size.");
 		static_assert(alignof(const uint8_t) == 1, "Type const uint8_t has unexpected alignment.");
+		static_assert(sizeof(unsigned int) == 4, "Type unsigned int has unexpected size.");
+		static_assert(alignof(unsigned int) == 4, "Type unsigned int has unexpected alignment.");
 		static_assert(sizeof(const char) == 1, "Type const char has unexpected size.");
 		static_assert(alignof(const char) == 1, "Type const char has unexpected alignment.");
 		static_assert(sizeof(char) == 1, "Type char has unexpected size.");
@@ -189,6 +195,8 @@ public class FFITypes {
 		static_assert(alignof(const uint16_t) == 2, "Type const uint16_t has unexpected alignment.");
 		static_assert(sizeof(const uint8_t) == 1, "Type const uint8_t has unexpected size.");
 		static_assert(alignof(const uint8_t) == 1, "Type const uint8_t has unexpected alignment.");
+		static_assert(sizeof(unsigned int) == 4, "Type unsigned int has unexpected size.");
+		static_assert(alignof(unsigned int) == 4, "Type unsigned int has unexpected alignment.");
 		static_assert(sizeof(const char) == 1, "Type const char has unexpected size.");
 		static_assert(alignof(const char) == 1, "Type const char has unexpected alignment.");
 		static_assert(sizeof(char) == 1, "Type char has unexpected size.");
@@ -245,6 +253,8 @@ public class FFITypes {
 		static_assert(alignof(const uint16_t) == 2, "Type const uint16_t has unexpected alignment.");
 		static_assert(sizeof(const uint8_t) == 1, "Type const uint8_t has unexpected size.");
 		static_assert(alignof(const uint8_t) == 1, "Type const uint8_t has unexpected alignment.");
+		static_assert(sizeof(unsigned int) == 4, "Type unsigned int has unexpected size.");
+		static_assert(alignof(unsigned int) == 4, "Type unsigned int has unexpected alignment.");
 		static_assert(sizeof(const char) == 1, "Type const char has unexpected size.");
 		static_assert(alignof(const char) == 1, "Type const char has unexpected alignment.");
 		static_assert(sizeof(char) == 1, "Type char has unexpected size.");
@@ -298,6 +308,7 @@ public class FFITypes {
 
 		static_assert(IS_UNSIGNED_TYPE(const uint16_t), "Type const uint16_t is expected unsigned.");
 		static_assert(IS_UNSIGNED_TYPE(const uint8_t), "Type const uint8_t is expected unsigned.");
+		static_assert(IS_UNSIGNED_TYPE(unsigned int), "Type unsigned int is expected unsigned.");
 		static_assert(IS_UNSIGNED_TYPE(uint32_t), "Type uint32_t is expected unsigned.");
 		static_assert(IS_SIGNED_TYPE(const float), "Type const float is expected signed.");
 		static_assert(IS_UNSIGNED_TYPE(const uint32_t), "Type const uint32_t is expected unsigned.");
@@ -350,7 +361,10 @@ switch(id) {
 	case 8:
 		GET_NATIVE_TYPE(uint32_t, nativeType);
 		return nativeType;
-	case 10:
+	case 9:
+		GET_NATIVE_TYPE(unsigned int, nativeType);
+		return nativeType;
+	case 11:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 7;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 7);
@@ -362,7 +376,7 @@ switch(id) {
 		nativeType->fields[5] = getNativeType(-1);
 		nativeType->fields[6] = getNativeType(8);
 		return nativeType;
-	case 12:
+	case 13:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 6;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 6);
@@ -373,7 +387,7 @@ switch(id) {
 		nativeType->fields[4] = getNativeType(7);
 		nativeType->fields[5] = getNativeType(7);
 		return nativeType;
-	case 13:
+	case 14:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 4;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 4);
@@ -382,7 +396,7 @@ switch(id) {
 		nativeType->fields[2] = getNativeType(6);
 		nativeType->fields[3] = getNativeType(6);
 		return nativeType;
-	case 15:
+	case 16:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 7;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 7);
@@ -394,7 +408,7 @@ switch(id) {
 		nativeType->fields[5] = getNativeType(6);
 		nativeType->fields[6] = getNativeType(6);
 		return nativeType;
-	case 16:
+	case 17:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 3;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 3);
@@ -434,10 +448,11 @@ switch(id) {
         registerCTypeInfo(6);
         registerCTypeInfo(7);
         registerCTypeInfo(8);
-        registerCTypeInfo(10);
-        registerCTypeInfo(12);
+        registerCTypeInfo(9);
+        registerCTypeInfo(11);
         registerCTypeInfo(13);
-        registerCTypeInfo(15);
+        registerCTypeInfo(14);
         registerCTypeInfo(16);
+        registerCTypeInfo(17);
     }
 }
