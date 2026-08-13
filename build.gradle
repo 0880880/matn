@@ -70,7 +70,7 @@ jnigen {
 
     generator {
         outputPath = file("src/main/java")
-        basePackage = "io.github.zeroeighteightzero.matn._native"
+        basePackage = "com.github.zeroeighteightzero.matn._native"
         fileToParse = "matn.h"
         options = [
                 "-Ijni/matn/include",
