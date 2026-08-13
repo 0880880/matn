@@ -25,4 +25,4 @@ before_install:
     find "$output_dir" -type f -name '*.jar' -print
 
 install:
-  - ./gradlew build publishToMavenLocal -x test -x jnigenPackageAll
+  - ./gradlew build publishToMavenLocal -x test -x jnigenPackageAll -x jnigenPackageAllDesktop
