@@ -19,7 +19,7 @@ plugins {
 apply plugin: "com.badlogicgames.jnigen.jnigen-gradle"
 
 group 'com.github.zeroeighteightzero.matn'
-version '0.2.1'
+version '0.2.2'
 
 repositories {
     maven { url 'https://jitpack.io' }
@@ -63,6 +63,11 @@ tasks.withType(JavaCompile) {
     if (JavaVersion.current().isJava9Compatible()) {
         options.compilerArgs += ["--release", "8"]
     }
+}
+
+tasks.register('runTestMain', JavaExec) {
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.github.zeroeighteightzero.matn.Main'
 }
 
 jnigen {
