@@ -17,7 +17,6 @@ import com.github.zeroeighteightzero.matn._native.Matn;
 import com.github.zeroeighteightzero.matn._native.enums.MatnGPU_LANGUAGE;
 import com.github.zeroeighteightzero.matn._native.enums.MatnPixelFormat;
 import com.github.zeroeighteightzero.matn._native.structs.*;
-import com.github.zeroeighteightzero.matn._native.structs.*;
 
 import java.nio.ByteBuffer;
 
@@ -27,7 +26,7 @@ import java.nio.ByteBuffer;
  * <p>A font wraps a native text-engine instance and holds variable-font coordinates,
  * synthetic-bold and synthetic-slant settings, and cached vertical metrics. Use it to
  * look up and rasterize glyphs, shape paragraphs, and draw text with either a standard
- * LibGDX {@link Batch} or a {@link GPUTextBatch}.</p>
+ * LibGDX {@link Batch} or a {@link GPUGlyphBatch}.</p>
  */
 public class Font implements Disposable {
 
@@ -774,7 +773,7 @@ public class Font implements Disposable {
      * @param x the glyph origin x-coordinate
      * @param y the glyph origin y-coordinate
      */
-    public void drawGPUGlyph(GPUTextBatch batch, long glyphID, float fontSize, float x, float y) {
+    public void drawGPUGlyph(GPUGlyphBatch batch, long glyphID, float fontSize, float x, float y) {
         batch.drawGlyph(atlas.getGPUGlyph(this, glyphID), fontSize, x, y);
     }
 
@@ -786,7 +785,7 @@ public class Font implements Disposable {
      * @param x the x-coordinate of the layout origin
      * @param y the y-coordinate of the first line baseline
      */
-    public void drawGPUText(GPUTextBatch batch, Layout layout, float x, float y) {
+    public void drawGPUText(GPUGlyphBatch batch, Layout layout, float x, float y) {
         int idx = 0;
         for (int i = 0; i < layout.lines.size; ++i) {
             Line line = layout.lines.get(i);

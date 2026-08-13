@@ -26,7 +26,7 @@ public class Main implements ApplicationListener {
     SpriteBatch batch;
     OrthographicCamera camera;
     ScreenViewport viewport;
-    GPUTextBatch gpuBatch;
+    GPUGlyphBatch gpuBatch;
 
     GlyphAtlas atlas;
 

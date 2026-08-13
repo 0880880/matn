@@ -17,7 +17,7 @@ import java.nio.Buffer;
  * @author Nathan Sweet
  * @see Batch
  */
-public class GPUTextBatch implements Disposable {
+public class GPUGlyphBatch implements Disposable {
 
     private static final int GLYPH_SIZE = 32;
 
@@ -69,7 +69,7 @@ public class GPUTextBatch implements Disposable {
      *
      * @see com.badlogic.gdx.graphics.g2d.SpriteBatch#SpriteBatch(int, ShaderProgram)
      */
-    public GPUTextBatch() {
+    public GPUGlyphBatch() {
         this(1000);
     }
 
@@ -81,7 +81,7 @@ public class GPUTextBatch implements Disposable {
      *
      * @param size The max number of sprites in a single batch. Max of 8191.
      */
-    public GPUTextBatch(int size) {
+    public GPUGlyphBatch(int size) {
         // 32767 is max vertex index, so 32767 / 4 vertices per sprite = 8191 sprites max.
         if (size > 8191) throw new IllegalArgumentException("Can't have more than 8191 sprites per batch: " + size);
 
