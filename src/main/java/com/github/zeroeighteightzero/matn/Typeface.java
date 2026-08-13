@@ -37,6 +37,9 @@ public class Typeface implements Disposable {
     /** The units-per-em of the typeface. */
     public final int upem;
 
+    public final float underlineThickness, underlinePosition;
+    public final float strikoutThickness, strikoutPosition;
+
     /** The variable-font axes of this typeface, if any. */
     public final VarAxis[] varAxes;
     /** The named variation instances of this typeface, if any. */
@@ -82,6 +85,11 @@ public class Typeface implements Disposable {
         this.varAxes = varAxes;
         this.namedInstances = namedInstances;
         this.upem = (int) Matn.matn_typeface_get_upem(mtFace);
+
+        this.underlinePosition = Matn.matn_typeface_get_underline_position(mtFace);
+        this.underlineThickness = Matn.matn_typeface_get_underline_position(mtFace);
+        this.strikoutPosition = Matn.matn_typeface_get_strikeout_position(mtFace);
+        this.strikoutThickness = Matn.matn_typeface_get_strikeout_thickness(mtFace);
     }
 
     private static MatnTypeface.MatnTypefacePointer loadMemory(ByteBuffer data, int index) {
