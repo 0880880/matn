@@ -129,3 +129,5 @@ jnigen {
         cppFlags += ["-fexceptions"]
     }
 }
+
+apply from: 'publish.gradle'
