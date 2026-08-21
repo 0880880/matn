@@ -470,19 +470,20 @@ void matn_font_set_synthetic_slant(const MatnFont *font, float slant) {
   }
 }
 
-uint32_t matn_font_get_glyph_id(const MatnFont *font, uint32_t codepoint) {
+int32_t matn_font_get_glyph_id(const MatnFont *font, uint32_t codepoint) {
   if (!font) {
     return 0;
   }
   uint32_t gid;
   hb_font_get_nominal_glyph(font->hb_font, codepoint, &gid);
-  return gid;
+  return static_cast<int32_t>(gid);
 }
 
-MatnResult matn_font_get_glyph_metrics(MatnFont *font, uint32_t glyph_id, MatnGlyphMetrics *out_metrics) {
+MatnResult matn_font_get_glyph_metrics(MatnFont *font, int32_t client_glyph_id, MatnGlyphMetrics *out_metrics) {
   if (!font || !out_metrics) {
     return MATN_ERR_INVALID_ARGUMENT;
   }
+  uint32_t glyph_id = static_cast<uint32_t>(client_glyph_id);
 
   hb_glyph_extents_t extents;
 
@@ -568,7 +569,7 @@ MatnResult matn_shape(MatnFont *font) {
     font->buffer.y_offsets.resize(glyph_count);
     font->buffer.clusters.resize(glyph_count);
 
-    font->buffer_view.glyph_ids = font->buffer.glyph_ids.data();
+    font->buffer_view.glyph_ids = reinterpret_cast<int32_t *>(font->buffer.glyph_ids.data());
     font->buffer_view.x_advances = font->buffer.x_advances.data();
     font->buffer_view.y_advances = font->buffer.y_advances.data();
     font->buffer_view.x_offsets = font->buffer.x_offsets.data();
@@ -593,10 +594,11 @@ const MatnBufferView *matn_shape_view_buffer(const MatnFont *font) {
   return &font->buffer_view;
 }
 
-MatnResult matn_gpu_draw_glyph(MatnFont *font, uint32_t glyph_id, MatnGPU_Blob **out_blob) {
+MatnResult matn_gpu_draw_glyph(MatnFont *font, int32_t client_glyph_id, MatnGPU_Blob **out_blob) {
   if (!font || !out_blob) {
     return MATN_ERR_INVALID_ARGUMENT;
   }
+  uint32_t glyph_id = static_cast<uint32_t>(client_glyph_id);
 
   hb_gpu_draw_t *draw = get_hb_gpu_draw();
 
@@ -725,11 +727,12 @@ const char *matn_gpu_get_fragment(MatnGPU_LANGUAGE language) {
   }
 }
 
-MatnResult matn_rasterize_glyph(MatnFont *font, uint32_t glyph_id,
+MatnResult matn_rasterize_glyph(MatnFont *font, int32_t client_glyph_id,
                              uint32_t size_px, MatnBlob **out_blob) {
   if (!font || !out_blob) {
     return MATN_ERR_INVALID_ARGUMENT;
   }
+  uint32_t glyph_id = static_cast<uint32_t>(client_glyph_id);
 
   update_font_size(font, size_px);
 

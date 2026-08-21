@@ -62,7 +62,7 @@ typedef struct {
 } MatnGlyphMetrics;
 
 typedef struct {
-  uint32_t *glyph_ids;
+  int32_t *glyph_ids;
   float *x_advances;
   float *y_advances;
   float *x_offsets;
@@ -141,9 +141,9 @@ float matn_font_get_line_gap(const MatnFont *font);
 
 uint32_t matn_font_get_size_px(const MatnFont *font);
 
-uint32_t matn_font_get_glyph_id(const MatnFont *font, uint32_t codepoint);
+int32_t matn_font_get_glyph_id(const MatnFont *font, uint32_t codepoint);
 
-MatnResult matn_font_get_glyph_metrics(MatnFont *font, uint32_t glyph_id, MatnGlyphMetrics *out_metrics);
+MatnResult matn_font_get_glyph_metrics(MatnFont *font, int32_t glyph_id, MatnGlyphMetrics *out_metrics);
 
 MatnResult matn_shape_set_utf8(MatnFont *font, const char *utf8_text, int text_length, int offset, int length);
 
@@ -157,12 +157,12 @@ MatnResult matn_shape(MatnFont *font);
 
 const MatnBufferView *matn_shape_view_buffer(const MatnFont *font);
 
-MatnResult matn_gpu_draw_glyph(MatnFont *font, uint32_t glyph_id, MatnGPU_Blob **out_blob);
+MatnResult matn_gpu_draw_glyph(MatnFont *font, int32_t glyph_id, MatnGPU_Blob **out_blob);
 
 const char *matn_gpu_get_vertex(MatnGPU_LANGUAGE language);
 const char *matn_gpu_get_fragment(MatnGPU_LANGUAGE language);
 
-MatnResult matn_rasterize_glyph(MatnFont *font, uint32_t glyph_id,
+MatnResult matn_rasterize_glyph(MatnFont *font, int32_t glyph_id,
                              uint32_t size_px, MatnBlob **out_blob);
 
 void matn_blob_destroy(MatnBlob *blob);
