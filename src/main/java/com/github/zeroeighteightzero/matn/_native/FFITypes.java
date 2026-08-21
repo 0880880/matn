@@ -37,6 +37,8 @@ public class FFITypes {
 		static_assert(alignof(float) == 4, "Type float has unexpected alignment.");
 		static_assert(sizeof(int) == 4, "Type int has unexpected size.");
 		static_assert(alignof(int) == 4, "Type int has unexpected alignment.");
+		static_assert(sizeof(int32_t) == 4, "Type int32_t has unexpected size.");
+		static_assert(alignof(int32_t) == 4, "Type int32_t has unexpected alignment.");
 		static_assert(sizeof(MatnVarInstance) == 12, "Type MatnVarInstance has unexpected size.");
 		static_assert(alignof(MatnVarInstance) == 4, "Type MatnVarInstance has unexpected alignment.");
 		static_assert(offsetof(MatnVarInstance, name) == 0, "Type MatnVarInstance has unexpected offset.");
@@ -95,6 +97,8 @@ public class FFITypes {
 		static_assert(alignof(float) == 4, "Type float has unexpected alignment.");
 		static_assert(sizeof(int) == 4, "Type int has unexpected size.");
 		static_assert(alignof(int) == 4, "Type int has unexpected alignment.");
+		static_assert(sizeof(int32_t) == 4, "Type int32_t has unexpected size.");
+		static_assert(alignof(int32_t) == 4, "Type int32_t has unexpected alignment.");
 		static_assert(sizeof(MatnVarInstance) == 24, "Type MatnVarInstance has unexpected size.");
 		static_assert(alignof(MatnVarInstance) == 8, "Type MatnVarInstance has unexpected alignment.");
 		static_assert(offsetof(MatnVarInstance, name) == 0, "Type MatnVarInstance has unexpected offset.");
@@ -153,6 +157,8 @@ public class FFITypes {
 		static_assert(alignof(float) == 4, "Type float has unexpected alignment.");
 		static_assert(sizeof(int) == 4, "Type int has unexpected size.");
 		static_assert(alignof(int) == 4, "Type int has unexpected alignment.");
+		static_assert(sizeof(int32_t) == 4, "Type int32_t has unexpected size.");
+		static_assert(alignof(int32_t) == 4, "Type int32_t has unexpected alignment.");
 		static_assert(sizeof(MatnVarInstance) == 12, "Type MatnVarInstance has unexpected size.");
 		static_assert(alignof(MatnVarInstance) == 4, "Type MatnVarInstance has unexpected alignment.");
 		static_assert(offsetof(MatnVarInstance, name) == 0, "Type MatnVarInstance has unexpected offset.");
@@ -211,6 +217,8 @@ public class FFITypes {
 		static_assert(alignof(float) == 4, "Type float has unexpected alignment.");
 		static_assert(sizeof(int) == 4, "Type int has unexpected size.");
 		static_assert(alignof(int) == 4, "Type int has unexpected alignment.");
+		static_assert(sizeof(int32_t) == 4, "Type int32_t has unexpected size.");
+		static_assert(alignof(int32_t) == 4, "Type int32_t has unexpected alignment.");
 		static_assert(sizeof(MatnVarInstance) == 24, "Type MatnVarInstance has unexpected size.");
 		static_assert(alignof(MatnVarInstance) == 8, "Type MatnVarInstance has unexpected alignment.");
 		static_assert(offsetof(MatnVarInstance, name) == 0, "Type MatnVarInstance has unexpected offset.");
@@ -269,6 +277,8 @@ public class FFITypes {
 		static_assert(alignof(float) == 4, "Type float has unexpected alignment.");
 		static_assert(sizeof(int) == 4, "Type int has unexpected size.");
 		static_assert(alignof(int) == 4, "Type int has unexpected alignment.");
+		static_assert(sizeof(int32_t) == 4, "Type int32_t has unexpected size.");
+		static_assert(alignof(int32_t) == 4, "Type int32_t has unexpected alignment.");
 		static_assert(sizeof(MatnVarInstance) == 12, "Type MatnVarInstance has unexpected size.");
 		static_assert(alignof(MatnVarInstance) == 4, "Type MatnVarInstance has unexpected alignment.");
 		static_assert(offsetof(MatnVarInstance, name) == 0, "Type MatnVarInstance has unexpected offset.");
@@ -314,6 +324,7 @@ public class FFITypes {
 		static_assert(IS_UNSIGNED_TYPE(const uint32_t), "Type const uint32_t is expected unsigned.");
 		static_assert(IS_SIGNED_TYPE(float), "Type float is expected signed.");
 		static_assert(IS_SIGNED_TYPE(int), "Type int is expected signed.");
+		static_assert(IS_SIGNED_TYPE(int32_t), "Type int32_t is expected signed.");
 */
     public static void init() {
     }
@@ -359,12 +370,15 @@ switch(id) {
 		GET_NATIVE_TYPE(int, nativeType);
 		return nativeType;
 	case 8:
-		GET_NATIVE_TYPE(uint32_t, nativeType);
+		GET_NATIVE_TYPE(int32_t, nativeType);
 		return nativeType;
 	case 9:
+		GET_NATIVE_TYPE(uint32_t, nativeType);
+		return nativeType;
+	case 10:
 		GET_NATIVE_TYPE(unsigned int, nativeType);
 		return nativeType;
-	case 11:
+	case 12:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 7;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 7);
@@ -374,20 +388,20 @@ switch(id) {
 		nativeType->fields[3] = getNativeType(-1);
 		nativeType->fields[4] = getNativeType(-1);
 		nativeType->fields[5] = getNativeType(-1);
-		nativeType->fields[6] = getNativeType(8);
+		nativeType->fields[6] = getNativeType(9);
 		return nativeType;
-	case 13:
+	case 14:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 6;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 6);
 		nativeType->fields[0] = getNativeType(-1);
-		nativeType->fields[1] = getNativeType(8);
+		nativeType->fields[1] = getNativeType(9);
 		nativeType->fields[2] = getNativeType(7);
 		nativeType->fields[3] = getNativeType(7);
 		nativeType->fields[4] = getNativeType(7);
 		nativeType->fields[5] = getNativeType(7);
 		return nativeType;
-	case 14:
+	case 15:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 4;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 4);
@@ -396,7 +410,7 @@ switch(id) {
 		nativeType->fields[2] = getNativeType(6);
 		nativeType->fields[3] = getNativeType(6);
 		return nativeType;
-	case 16:
+	case 17:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 7;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 7);
@@ -408,7 +422,7 @@ switch(id) {
 		nativeType->fields[5] = getNativeType(6);
 		nativeType->fields[6] = getNativeType(6);
 		return nativeType;
-	case 17:
+	case 18:
 		nativeType->type = STRUCT_TYPE;
 		nativeType->field_count = 3;
 		nativeType->fields = (native_type**)malloc(sizeof(native_type*) * 3);
@@ -449,10 +463,11 @@ switch(id) {
         registerCTypeInfo(7);
         registerCTypeInfo(8);
         registerCTypeInfo(9);
-        registerCTypeInfo(11);
-        registerCTypeInfo(13);
+        registerCTypeInfo(10);
+        registerCTypeInfo(12);
         registerCTypeInfo(14);
-        registerCTypeInfo(16);
+        registerCTypeInfo(15);
         registerCTypeInfo(17);
+        registerCTypeInfo(18);
     }
 }

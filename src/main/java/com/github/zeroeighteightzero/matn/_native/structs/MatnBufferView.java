@@ -6,8 +6,9 @@ import com.badlogic.gdx.jnigen.runtime.pointer.StackElementPointer;
 import com.badlogic.gdx.jnigen.runtime.pointer.Pointing;
 import com.badlogic.gdx.jnigen.runtime.pointer.VoidPointer;
 import com.github.zeroeighteightzero.matn._native.FFITypes;
-import com.badlogic.gdx.jnigen.runtime.pointer.integer.UIntPointer;
+import com.badlogic.gdx.jnigen.runtime.pointer.integer.SIntPointer;
 import com.badlogic.gdx.jnigen.runtime.pointer.FloatPointer;
+import com.badlogic.gdx.jnigen.runtime.pointer.integer.UIntPointer;
 
 public final class MatnBufferView extends Struct {
 
@@ -16,7 +17,7 @@ public final class MatnBufferView extends Struct {
     private final static long __ffi_type;
 
     static {
-        __ffi_type = FFITypes.getCTypeInfo(11).getFfiType();
+        __ffi_type = FFITypes.getCTypeInfo(12).getFfiType();
         __size = CHandler.getSizeFromFFIType(__ffi_type);
     }
 
@@ -49,15 +50,15 @@ public final class MatnBufferView extends Struct {
         ptr.setPointer(this);
     }
 
-    public UIntPointer glyph_ids() {
-        return new UIntPointer(getBufPtr().getNativePointer(0), false);
+    public SIntPointer glyph_ids() {
+        return new SIntPointer(getBufPtr().getNativePointer(0), false);
     }
 
-    public void glyph_ids(UIntPointer glyph_ids) {
+    public void glyph_ids(SIntPointer glyph_ids) {
         getBufPtr().setNativePointer(0, glyph_ids.getPointer());
     }
 
-    public void getGlyph_ids(UIntPointer toSetPtr) {
+    public void getGlyph_ids(SIntPointer toSetPtr) {
         toSetPtr.setPointer(getBufPtr().getNativePointer(0));
     }
 
