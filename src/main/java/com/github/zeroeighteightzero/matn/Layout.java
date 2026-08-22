@@ -15,7 +15,7 @@ import com.badlogic.gdx.utils.FloatArray;
  */
 public class Layout {
 
-    protected Font.Paragraph paragraph = null;
+    protected Paragraph paragraph = null;
     protected final Array<Line> lines = new Array<>(true, 8);
     protected Font.ShapeResult shapeResult;
     protected Font font;
@@ -156,7 +156,7 @@ public class Layout {
     public void update() {
         lines.clear();
         if (textDirty) {
-            paragraph = new Font.Paragraph(text.toString());
+            paragraph = new Paragraph(text.toString());
             shape();
         } else if (fontDirty) {
             shape();

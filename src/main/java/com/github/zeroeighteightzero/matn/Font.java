@@ -9,7 +9,6 @@ import com.badlogic.gdx.jnigen.runtime.pointer.PointerPointer;
 import com.badlogic.gdx.jnigen.runtime.pointer.integer.BytePointer;
 import com.badlogic.gdx.jnigen.runtime.pointer.integer.SIntPointer;
 import com.badlogic.gdx.jnigen.runtime.pointer.integer.UBytePointer;
-import com.badlogic.gdx.jnigen.runtime.pointer.integer.UShortPointer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -341,35 +340,6 @@ public class Font implements Disposable {
         Matn.matn_font_get_glyph_metrics(mtFont, glyphID, ptr);
         MatnGlyphMetrics gm = ptr.get();
         return new GlyphMetrics(gm.width(), gm.height(), gm.bearing_x(), gm.bearing_y());
-    }
-
-    /**
-     * A UTF-16 text paragraph shaped as a single unit.
-     *
-     * <p>Constructing a paragraph copies the text into a native-side buffer, making it
-     * suitable for passing to the shaping functions in {@link Font}.</p>
-     */
-    public static class Paragraph {
-        protected final UShortPointer ptr;
-        public final int length;
-
-        /**
-         * Creates a paragraph from the given text.
-         *
-         * @param text the paragraph text; {@code null} or empty yields an empty paragraph
-         */
-        public Paragraph(String text) {
-            if (text == null || text.isEmpty()) {
-                ptr = null;
-                length = 0;
-                return;
-            }
-            ptr = new UShortPointer(text.length(), false);
-            length = text.length();
-            for (int i = 0; i < length; ++i) {
-                ptr.setUShort(text.charAt(i), i);
-            }
-        }
     }
 
     /**
