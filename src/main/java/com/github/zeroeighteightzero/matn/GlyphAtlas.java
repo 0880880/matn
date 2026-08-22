@@ -253,7 +253,7 @@ public class GlyphAtlas implements Disposable {
      * @param glyphID the identifier of the glyph to retrieve
      * @return the cached or newly encoded GPU glyph
      */
-    public GPUGlyph getGPUGlyph(Font font, long glyphID) {
+    public GPUGlyph getGPUGlyph(Font font, int glyphID) {
         long hash = Utils.glyphHash(font, glyphID);
 
         if (gpuGlyphMap.containsKey(hash)) {
@@ -275,7 +275,7 @@ public class GlyphAtlas implements Disposable {
      * @return the cached or newly packed glyph
      * @throws RuntimeException if the glyph is larger than a complete atlas page
      */
-    public Glyph getGlyph(Font font, long glyphID, int size) {
+    public Glyph getGlyph(Font font, int glyphID, int size) {
         int steppedSize = Utils.getFontSize(size);
         long hash = Utils.glyphHashWithSize(font, glyphID, steppedSize);
         if (glyphMap.containsKey(hash)) {

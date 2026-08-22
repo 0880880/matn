@@ -1,5 +1,6 @@
 package com.github.zeroeighteightzero.matn;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.jnigen.runtime.CHandler;
@@ -69,7 +70,7 @@ public class Font implements Disposable {
     public static class ShapeResult {
         public final Vector2[] advances;
         public final Vector2[] offsets;
-        public final long[] glyphIDs;
+        public final int[] glyphIDs;
         public final long[] clusters;
         public final boolean rtl;
 
@@ -82,7 +83,7 @@ public class Font implements Disposable {
          * @param clusters the source UTF-16 cluster index of each glyph
          * @param rtl whether the shaped buffer is right-to-left
          */
-        public ShapeResult(Vector2[] advances, Vector2[] offsets, long[] glyphIDs, long[] clusters, boolean rtl) {
+        public ShapeResult(Vector2[] advances, Vector2[] offsets, int[] glyphIDs, long[] clusters, boolean rtl) {
             this.advances = advances;
             this.offsets = offsets;
             this.glyphIDs = glyphIDs;
@@ -335,7 +336,7 @@ public class Font implements Disposable {
      * @param glyphID the font-specific glyph identifier
      * @return the glyph's width, height, horizontal bearing, and vertical bearing
      */
-    public GlyphMetrics getGlyphMetrics(long glyphID) {
+    public GlyphMetrics getGlyphMetrics(int glyphID) {
         MatnGlyphMetrics.MatnGlyphMetricsPointer ptr = new MatnGlyphMetrics.MatnGlyphMetricsPointer();
         Matn.matn_font_get_glyph_metrics(mtFont, glyphID, ptr);
         MatnGlyphMetrics gm = ptr.get();
@@ -391,7 +392,7 @@ public class Font implements Disposable {
      */
     public ShapeResult shape(Paragraph paragraph, int offset, int length) {
         if (paragraph.length == 0) {
-            return new ShapeResult(new Vector2[0], new Vector2[0], new long[0], new long[0], false);
+            return new ShapeResult(new Vector2[0], new Vector2[0], new int[0], new long[0], false);
         }
         Matn.matn_shape_set_utf16(mtFont, paragraph.ptr, paragraph.length, offset, length);
         Matn.matn_shape(mtFont);
@@ -399,12 +400,12 @@ public class Font implements Disposable {
         MatnBufferView bufferView = Matn.matn_shape_view_buffer(mtFont).get();
 
         int shapeLength = (int) bufferView.length();
-        ShapeResult res = new ShapeResult(new Vector2[shapeLength], new Vector2[shapeLength], new long[shapeLength], new long[shapeLength], Matn.matn_shape_is_rtl(mtFont) != 0);
+        ShapeResult res = new ShapeResult(new Vector2[shapeLength], new Vector2[shapeLength], new int[shapeLength], new long[shapeLength], Matn.matn_shape_is_rtl(mtFont) != 0);
 
         for (int i = 0; i < shapeLength; ++i) {
             res.advances[i] = new Vector2(bufferView.x_advances().getFloat(i), bufferView.y_advances().getFloat(i));
             res.offsets[i] = new Vector2(bufferView.x_offsets().getFloat(i), bufferView.y_offsets().getFloat(i));
-            res.glyphIDs[i] = bufferView.glyph_ids().getUInt(i);
+            res.glyphIDs[i] = bufferView.glyph_ids().getInt(i);
             res.clusters[i] = bufferView.clusters().getUInt(i);
         }
 
@@ -429,7 +430,7 @@ public class Font implements Disposable {
      * @param size the rasterization size
      * @return a newly created pixmap containing the rasterized glyph
      */
-    public GlyphRasterData rasterize(long glyphID, int size) {
+    public GlyphRasterData rasterize(int glyphID, int size) {
         PointerPointer<MatnBlob.MatnBlobPointer> ptr = new PointerPointer<>(MatnBlob.MatnBlobPointer::new);
         Matn.matn_rasterize_glyph(mtFont, glyphID, size, ptr);
         MatnBlob.MatnBlobPointer blob = ptr.getValue();
@@ -485,7 +486,7 @@ public class Font implements Disposable {
      * @param glyphID the font-specific glyph identifier
      * @return the encoded GPU glyph
      */
-    public GPUGlyph encodeGPU(long glyphID) {
+    public GPUGlyph encodeGPU(int glyphID) {
         PointerPointer<MatnGPU_Blob.MatnGPU_BlobPointer> ptr = new PointerPointer<>(MatnGPU_Blob.MatnGPU_BlobPointer::new);
         Matn.matn_gpu_draw_glyph(mtFont, glyphID, ptr);
         MatnGPU_Blob.MatnGPU_BlobPointer gpuBlob = ptr.getValue();
@@ -709,8 +710,9 @@ public class Font implements Disposable {
      * @param sx the horizontal scale factor
      * @param sy the vertical scale factor
      * @param rot the rotation in radians
+     * @param color the glyph color
      */
-    public void drawGlyph(Batch batch, long glyphID, float fontSize, float x, float y, float sx, float sy, float rot) {
+    public void drawGlyph(Batch batch, int glyphID, float fontSize, float x, float y, float sx, float sy, float rot, float color) {
         Glyph glyph = atlas.getGlyph(this, glyphID, (int) fontSize);
         float scale = fontSize / glyph.size;
         float width = glyph.width * scale;
@@ -720,6 +722,7 @@ public class Font implements Disposable {
         float drawX = glyph.left * scale + x;
         float drawY = glyph.top * scale + y;
 
+        batch.setPackedColor(color);
         batch.draw(
                 atlas.pages.get(glyph.page).texture,
                 drawX,
@@ -755,7 +758,9 @@ public class Font implements Disposable {
         for (int i = 0; i < layout.lines.size; ++i) {
             Line line = layout.lines.get(i);
             for (int j = 0; j < line.glyphs.size; ++j) {
-                drawGlyph(batch, line.glyphs.get(j), layout.fontSize, penX + layout.offsets.get(idx * 2), penY + layout.offsets.get(idx * 2 + 1), layout.sizing.get(idx * 2), layout.sizing.get(idx * 2 + 1), layout.rotation.get(idx));
+                int glyph = line.getGlyph(j);
+                float color = Color.WHITE_FLOAT_BITS;//line.getColor(j);
+                drawGlyph(batch, glyph, layout.fontSize, penX + layout.offsets.get(idx * 2), penY + layout.offsets.get(idx * 2 + 1), layout.sizing.get(idx * 2), layout.sizing.get(idx * 2 + 1), layout.rotation.get(idx), color);
                 penX += layout.advances.get(idx);
                 ++idx;
             }
@@ -773,7 +778,8 @@ public class Font implements Disposable {
      * @param x the glyph origin x-coordinate
      * @param y the glyph origin y-coordinate
      */
-    public void drawGPUGlyph(GPUGlyphBatch batch, long glyphID, float fontSize, float x, float y) {
+    public void drawGPUGlyph(GPUGlyphBatch batch, int glyphID, float fontSize, float x, float y, float color) {
+        batch.setPackedColor(color);
         batch.drawGlyph(atlas.getGPUGlyph(this, glyphID), fontSize, x, y);
     }
 
@@ -791,7 +797,9 @@ public class Font implements Disposable {
             Line line = layout.lines.get(i);
             float penX = 0;
             for (int j = 0; j < line.glyphs.size; ++j) {
-                drawGPUGlyph(batch, line.glyphs.get(j), layout.fontSize, x + penX + layout.offsets.get(idx * 2), y - i * layout.lineHeight + layout.offsets.get(idx * 2 + 1));
+                int glyph = line.getGlyph(j);
+                float color = line.getColor(j);
+                drawGPUGlyph(batch, glyph, layout.fontSize, x + penX + layout.offsets.get(idx * 2), y - i * layout.lineHeight + layout.offsets.get(idx * 2 + 1), color);
                 penX += layout.advances.get(idx);
                 ++idx;
             }

@@ -1,5 +1,6 @@
 package com.github.zeroeighteightzero.matn;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.FloatArray;
@@ -22,6 +23,7 @@ public class Layout {
     protected final StringBuilder text = new StringBuilder();
     protected boolean wrap = false;
     protected float maxWidth;
+    protected float baseColor = Color.WHITE_FLOAT_BITS;
 
     /** The overall width of the laid-out text. */
     public float width;
@@ -110,13 +112,14 @@ public class Layout {
                     while (currentLine.notEmpty() && currentLine.clusters.get(currentLine.clusters.size - 1) != brk) {
                         ++distance;
                         currentLine.glyphs.pop();
+                        currentLine.flags.pop();
+                        currentLine.clusters.pop();
                         advances.pop();
                         offsets.pop();
                         offsets.pop();
                         sizing.pop();
                         sizing.pop();
                         rotation.pop();
-                        currentLine.clusters.pop();
                     }
                     lines.add(currentLine);
                     currentLine = new Line(shapeResult.advances.length - i - 1);
@@ -125,11 +128,11 @@ public class Layout {
                     i -= distance + 1;
                     continue;
                 }
-                currentLine.glyphs.add(shapeResult.glyphIDs[i]);
                 advances.add(adv);
                 offsets.add(shapeResult.offsets[i].x * fontSize, shapeResult.offsets[i].y * fontSize);
                 sizing.add(1, 1);
                 rotation.add(0);
+                currentLine.add(shapeResult.glyphIDs[i], baseColor, (short) 0);
                 currentLine.clusters.add(cluster);
                 penX += adv;
             }
@@ -281,5 +284,9 @@ public class Layout {
      */
     public float maxWidth() {
         return maxWidth;
+    }
+
+    public void baseColor(Color color) {
+        this.baseColor = color.toFloatBits();
     }
 }
