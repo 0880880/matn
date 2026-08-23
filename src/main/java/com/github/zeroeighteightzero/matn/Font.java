@@ -42,8 +42,6 @@ public class Font implements Disposable {
     protected float boldX, boldY, slant;
     protected boolean boldInPlace;
 
-    private final Layout layout = new Layout(this, 1);
-
     /**
      * Layout metrics describing the size and bearings of a glyph.
      */
@@ -714,32 +712,6 @@ public class Font implements Disposable {
     }
 
     /**
-     * Draws a prepared text layout using a standard LibGDX batch.
-     *
-     * @param batch the batch used to draw the text
-     * @param layout the prepared layout to render
-     * @param x the x-coordinate of the layout origin
-     * @param y the y-coordinate of the first line baseline
-     */
-    public void drawText(Batch batch, Layout layout, float x, float y) {
-        int idx = 0;
-        float penX = x;
-        float penY = y;
-        for (int i = 0; i < layout.lines.size; ++i) {
-            Line line = layout.lines.get(i);
-            for (int j = 0; j < line.glyphs.size; ++j) {
-                int glyph = line.getGlyph(j);
-                float color = Color.WHITE_FLOAT_BITS;//line.getColor(j);
-                drawGlyph(batch, glyph, layout.fontSize, penX + layout.offsets.get(idx * 2), penY + layout.offsets.get(idx * 2 + 1), layout.sizing.get(idx * 2), layout.sizing.get(idx * 2 + 1), layout.rotation.get(idx), color);
-                penX += layout.advances.get(idx);
-                ++idx;
-            }
-            penX = x;
-            penY -= layout.lineHeight;
-        }
-    }
-
-    /**
      * Draws a single glyph using a GPU text batch.
      *
      * @param batch the GPU text batch used to draw the glyph
@@ -751,47 +723,6 @@ public class Font implements Disposable {
     public void drawGPUGlyph(GPUGlyphBatch batch, int glyphID, float fontSize, float x, float y, float color) {
         batch.setPackedColor(color);
         batch.drawGlyph(atlas.getGPUGlyph(this, glyphID), fontSize, x, y);
-    }
-
-    /**
-     * Draws a prepared text layout using a GPU text batch.
-     *
-     * @param batch the GPU text batch used to draw the text
-     * @param layout the prepared layout to render
-     * @param x the x-coordinate of the layout origin
-     * @param y the y-coordinate of the first line baseline
-     */
-    public void drawGPUText(GPUGlyphBatch batch, Layout layout, float x, float y) {
-        int idx = 0;
-        for (int i = 0; i < layout.lines.size; ++i) {
-            Line line = layout.lines.get(i);
-            float penX = 0;
-            for (int j = 0; j < line.glyphs.size; ++j) {
-                int glyph = line.getGlyph(j);
-                float color = line.getColor(j);
-                drawGPUGlyph(batch, glyph, layout.fontSize, x + penX + layout.offsets.get(idx * 2), y - i * layout.lineHeight + layout.offsets.get(idx * 2 + 1), color);
-                penX += layout.advances.get(idx);
-                ++idx;
-            }
-        }
-    }
-
-    /**
-     * Lays out and draws text using a standard LibGDX batch.
-     *
-     * <p>This method reuses an internal layout instance and is therefore not
-     * suitable for concurrent use from multiple threads.</p>
-     *
-     * @param batch the batch used to draw the text
-     * @param text the text to lay out and render
-     * @param fontSize the desired font size
-     * @param x the x-coordinate of the text origin
-     * @param y the y-coordinate of the first line baseline
-     */
-    public void drawText(Batch batch, String text, float fontSize, float x, float y) {
-        layout.setText(text);
-        layout.fontSize(fontSize);
-        drawText(batch, layout, x, y);
     }
 
     /**
