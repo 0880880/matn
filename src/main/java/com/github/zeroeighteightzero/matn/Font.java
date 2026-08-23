@@ -36,6 +36,9 @@ public class Font implements Disposable {
     protected final GlyphAtlas atlas;
     protected final MatnFont.MatnFontPointer mtFont;
 
+    public int outlineWidth = 0;
+    public Color outlineColor = new Color(Color.BLACK);
+
     private float ascender, descender, lineGap, lineHeight;
 
     protected final float[] varCoords;
@@ -391,6 +394,9 @@ public class Font implements Disposable {
         }
     }
 
+    private static final Color tmpColor = new Color();
+    private static final Color tmpColor1 = new Color();
+
     /**
      * Rasterizes a glyph into a pixmap at the requested size.
      *
@@ -441,7 +447,79 @@ public class Font implements Disposable {
             }
         }
 
-        GlyphRasterData rasterData = new GlyphRasterData(pixmap, Matn.matn_blob_get_top(blob), Matn.matn_blob_get_left(blob));
+        if (outlineWidth > 0) {
+            Pixmap source = pixmap;
+            Pixmap outline = new Pixmap(
+                    source.getWidth() + outlineWidth * 2,
+                    source.getHeight() + outlineWidth * 2,
+                    Pixmap.Format.RGBA8888
+            );
+
+            outline.setBlending(Pixmap.Blending.None);
+
+            for (int x = 0; x < outline.getWidth(); x++) {
+                for (int y = 0; y < outline.getHeight(); y++) {
+                    float dilatedAlpha = 0f;
+
+                    for (int dx = -outlineWidth; dx <= outlineWidth; dx++) {
+                        for (int dy = -outlineWidth; dy <= outlineWidth; dy++) {
+                            if (dx * dx + dy * dy > outlineWidth * outlineWidth) {
+                                continue;
+                            }
+
+                            int sx = x + dx;
+                            int sy = y + dy;
+
+                            if (sx < 0 || sx >= outline.getWidth()
+                                    || sy < 0 || sy >= outline.getHeight()) {
+                                continue;
+                            }
+
+                            tmpColor.set(source.getPixel(sx - outlineWidth, sy - outlineWidth));
+                            dilatedAlpha = Math.max(dilatedAlpha, tmpColor.a);
+                        }
+                    }
+
+                    tmpColor.set(source.getPixel(x - outlineWidth, y - outlineWidth));
+                    float outlineAlpha = Math.max(0f, dilatedAlpha - tmpColor.a);
+
+                    outline.setColor(outlineColor.r, outlineColor.g, outlineColor.b, outlineAlpha);
+                    outline.drawPixel(x, y);
+                }
+            }
+
+            pixmap = new Pixmap(outline.getWidth() + outlineWidth * 2, outline.getHeight() + outlineWidth * 2, Pixmap.Format.RGBA8888);
+
+            for (int x = 0; x < pixmap.getWidth(); x++) {
+                for (int y = 0; y < pixmap.getHeight(); y++) {
+                    tmpColor.set(source.getPixel(x - outlineWidth, y - outlineWidth));
+                    tmpColor1.set(outline.getPixel(x, y));
+
+                    float srcA = tmpColor.a;
+                    float dstA = tmpColor1.a;
+                    float outA = srcA + dstA * (1f - srcA);
+
+                    if (outA == 0f) {
+                        tmpColor1.set(0f, 0f, 0f, 0f);
+                    } else {
+                        tmpColor1.set(
+                                (tmpColor.r * srcA + tmpColor1.r * dstA * (1f - srcA)) / outA,
+                                (tmpColor.g * srcA + tmpColor1.g * dstA * (1f - srcA)) / outA,
+                                (tmpColor.b * srcA + tmpColor1.b * dstA * (1f - srcA)) / outA,
+                                outA
+                        );
+                    }
+
+                    pixmap.setColor(tmpColor1);
+                    pixmap.drawPixel(x + outlineWidth, y + outlineWidth);
+                }
+            }
+
+            source.dispose();
+            outline.dispose();
+        }
+
+        GlyphRasterData rasterData = new GlyphRasterData(pixmap, Matn.matn_blob_get_top(blob) + outlineWidth, Matn.matn_blob_get_left(blob) + outlineWidth);
 
         Matn.matn_blob_destroy(blob);
 
