@@ -315,7 +315,7 @@ public class Font implements Disposable {
      * @param codepoint the Unicode code point
      * @return the font-specific glyph identifier, or the missing-glyph identifier when unavailable
      */
-    public long getGlyphID(int codepoint) {
+    public int getGlyphID(int codepoint) {
         return Matn.matn_font_get_glyph_id(mtFont, codepoint);
     }
 
@@ -325,7 +325,7 @@ public class Font implements Disposable {
      * @param codepoint the character to look up
      * @return the font-specific glyph identifier, or the missing-glyph identifier when unavailable
      */
-    public long getGlyphID(char codepoint) {
+    public int getGlyphID(char codepoint) {
         return getGlyphID((int) codepoint);
     }
 
