@@ -531,7 +531,7 @@ public class Font implements Disposable {
             outline.dispose();
         }
 
-        GlyphRasterData rasterData = new GlyphRasterData(pixmap, Matn.matn_blob_get_top(blob) + outlineWidth, Matn.matn_blob_get_left(blob) + outlineWidth);
+        GlyphRasterData rasterData = new GlyphRasterData(pixmap, Matn.matn_blob_get_top(blob) - outlineWidth * 2, Matn.matn_blob_get_left(blob) - outlineWidth * 2);
 
         Matn.matn_blob_destroy(blob);
 
