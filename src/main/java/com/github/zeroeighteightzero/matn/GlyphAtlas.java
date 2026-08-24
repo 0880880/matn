@@ -1,8 +1,10 @@
 package com.github.zeroeighteightzero.matn;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -110,6 +112,7 @@ public class GlyphAtlas implements Disposable {
     public final int pageSize;
     /** The pixel format used by atlas textures. */
     public final Pixmap.Format format;
+    public final TextureRegion pixel;
 
     private static final int GPU_TEXTURE_WIDTH = 512;
     private static final int TEXEL_SIZE = 8;
@@ -153,6 +156,12 @@ public class GlyphAtlas implements Disposable {
         this.format = format;
         this.gpuPageCapacity = pageSize * pageSize;
         pages.add(new Page(pageSize, format));
+        Pixmap pixel = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixel.setColor(Color.WHITE);
+        pixel.fill();
+        pages.get(0).placed.add(new Page.Rect(0,0,1,1));
+        pages.get(0).place(pixel, 0, 0);
+        this.pixel = new TextureRegion(pages.get(0).texture, 0, 0, 1, 1);
 
         if (Gdx.gl32 != null) {
             hasTexBuf = true;
