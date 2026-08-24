@@ -761,7 +761,7 @@ public class Font implements Disposable {
      * Draws a single glyph using a standard LibGDX batch.
      *
      * @param batch the batch used to draw the glyph
-     * @param glyphID the font-specific glyph identifier
+     * @param glyph the glyph to draw
      * @param fontSize the desired font size
      * @param x the glyph origin x-coordinate
      * @param y the glyph origin y-coordinate
@@ -770,8 +770,7 @@ public class Font implements Disposable {
      * @param rot the rotation in radians
      * @param color the glyph color
      */
-    public void drawGlyph(Batch batch, int glyphID, float fontSize, float x, float y, float sx, float sy, float rot, float color) {
-        Glyph glyph = atlas.getGlyph(this, glyphID, (int) fontSize);
+    public void drawGlyph(Batch batch, Glyph glyph, float fontSize, float x, float y, float sx, float sy, float rot, float color) {
         float scale = fontSize / glyph.size;
         float width = glyph.width * scale;
         float height = glyph.height * scale;
@@ -805,14 +804,14 @@ public class Font implements Disposable {
      * Draws a single glyph using a GPU text batch.
      *
      * @param batch the GPU text batch used to draw the glyph
-     * @param glyphID the font-specific glyph identifier
+     * @param glyph the glyph to draw
      * @param fontSize the desired font size
      * @param x the glyph origin x-coordinate
      * @param y the glyph origin y-coordinate
      */
-    public void drawGPUGlyph(GPUGlyphBatch batch, int glyphID, float fontSize, float x, float y, float color) {
+    public void drawGPUGlyph(GPUGlyphBatch batch, GPUGlyph glyph, float fontSize, float x, float y, float color) {
         batch.setPackedColor(color);
-        batch.drawGlyph(atlas.getGPUGlyph(this, glyphID), fontSize, x, y);
+        batch.drawGlyph(glyph, fontSize, x, y);
     }
 
     /**
