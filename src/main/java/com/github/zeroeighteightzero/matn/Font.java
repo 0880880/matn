@@ -167,10 +167,20 @@ public class Font implements Disposable {
                 return this.varCoords[i];
             }
         }
-        throw new RuntimeException("Typeface does not have '" + tag + "' tag");
         return 0;
     }
 
+    public boolean hasVariableAxis(String tag) {
+        if (tag.length() != 4) {
+            return false;
+        }
+        for (int i = 0; i < face.varAxes.length; i++) {
+            VarAxis v = this.face.varAxes[i];
+            if (v.tag.equals(tag)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
