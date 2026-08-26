@@ -1,6 +1,7 @@
 package com.github.zeroeighteightzero.matn;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.NumberUtils;
 
 /**
  * Static helpers for hashing glyphs and deriving glyph rasterization sizes.
@@ -20,12 +21,17 @@ public class Utils {
         float[] vars = font.getVarCoords();
         if (vars != null) {
             for (float v : vars) {
-                h = 31L * h + Float.floatToIntBits(v);
+                h = 31L * h + NumberUtils.floatToIntBits(v);
             }
         }
-        h = 31L * h + Float.floatToIntBits(font.boldX);
-        h = 31L * h + Float.floatToIntBits(font.boldY);
-        h = 31L * h + Float.floatToIntBits(font.slant);
+        h = 31L * h + NumberUtils.floatToIntBits(font.boldX);
+        h = 31L * h + NumberUtils.floatToIntBits(font.boldY);
+        h = 31L * h + NumberUtils.floatToIntBits(font.slant);
+        h = 31L * h + NumberUtils.floatToIntBits(font.outlineWidth);
+        h = 31L * h + (font.outlineColor.r != +0.0f ? NumberUtils.floatToIntBits(font.outlineColor.r) : 0);
+        h = 31L * h + (font.outlineColor.g != +0.0f ? NumberUtils.floatToIntBits(font.outlineColor.g) : 0);
+        h = 31L * h + (font.outlineColor.b != +0.0f ? NumberUtils.floatToIntBits(font.outlineColor.b) : 0);
+        h = 31L * h + (font.outlineColor.a != +0.0f ? NumberUtils.floatToIntBits(font.outlineColor.a) : 0);
         h = 31L * h + font.mtFont.getPointer();
         h = 31L * h + glyphID;
         h = 31L * h + (font.boldInPlace ? 1231L : 1237L);
