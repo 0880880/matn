@@ -8,7 +8,7 @@ import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.ShortArray;
 
-public class Layout {
+public class RichLayout {
 
     private Font font;
     protected int fontSize;
@@ -35,7 +35,7 @@ public class Layout {
     private boolean hasItalic;
     private boolean hasSlant;
 
-    public Layout(String text, int fontSize) {
+    public RichLayout(String text, int fontSize) {
         this.text = text;
         this.fontSize = fontSize;
     }
@@ -337,8 +337,8 @@ public class Layout {
                 penX += this.advances.get(idx);
                 idx++;
             }
-            boolean outline = (flags & Layout.OUTLINE) != 0;
-            if ((flags & Layout.UNDERLINE) != 0) {
+            boolean outline = (flags & RichLayout.OUTLINE) != 0;
+            if ((flags & RichLayout.UNDERLINE) != 0) {
                 float underlinePosition = run.font.face.underlinePosition * this.fontSize + run.font.face.underlineThickness * this.fontSize * .5f;
                 float start = run.x;
                 float end = 0;
@@ -364,7 +364,7 @@ public class Layout {
                 }
                 batch.draw(run.font.atlas.pixel, x + start, y + run.y + underlinePosition * sy, end, run.font.face.underlineThickness * this.fontSize * sy);
             }
-            if ((flags & Layout.STRIKETHROUGH) != 0) {
+            if ((flags & RichLayout.STRIKETHROUGH) != 0) {
                 if (outline) {
                     batch.setColor(this.outlineColor);
                     batch.draw(run.font.atlas.pixel, x + run.x - this.outlineWidth, y + run.y + run.font.face.strikoutPosition * this.fontSize * sy - this.outlineWidth - run.font.face.strikoutThickness * this.fontSize * sy * .5f, run.width + this.outlineWidth * 2, (run.font.face.strikoutThickness * this.fontSize + this.outlineWidth * 2) * sy);

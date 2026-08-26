@@ -31,10 +31,10 @@ public class Main implements ApplicationListener {
     GlyphAtlas atlas;
 
     Typeface face;
-    Font[] fonts;
-    Layout[] layouts;
+    Font font;
+    RichLayout richLayout;
 
-    float fontSize = 48;
+    int fontSize = 48;
     float targetZoom = 1;
     boolean dragging = false;
     int dragButton = -1;
@@ -49,15 +49,9 @@ public class Main implements ApplicationListener {
     private static final float ZOOM_SMOOTHING = 18f;
     private static final float CLICK_THRESHOLD_PX = 6f;
 
-    String text = "The quick brown fox jumps over the lazy dog.";
+    String text = "[SALMON][_]Hello[ ], [/][#]world";//"The quick brown fox jumps over the lazy dog.";
 
-    boolean useGPU = true;
-
-    private void updateText() {
-        for (Layout layout : layouts) {
-            layout.setText(text);
-        }
-    }
+    boolean useGPU = false;
 
     @Override
     public void create() {
@@ -72,30 +66,21 @@ public class Main implements ApplicationListener {
 
         gpuBatch = new GPUGlyphBatch();
 
-        int numWeights = 8;
-        float weightStart = face.weight().min;
-        float weightEnd = face.weight().max;
-        float step = (weightEnd - weightStart) / (numWeights - 1);
-
-        fonts = new Font[numWeights];
-        layouts = new Layout[numWeights];
-
-        for (int i = 0; i < numWeights; i++) {
-            float w = weightStart + i * step;
-
-            Font font = new Font(face, atlas);
-            if (face.opticalSize() != null) {
-                font.opticalSize(face.opticalSize().max);
-            }
-            font.weight(w);
-            font.applyVariation();
-
-            Layout layout = new Layout(text, font, fontSize);
-            layout.wrap(false);
-
-            fonts[i] = font;
-            layouts[i] = layout;
+        Font font = new Font(face, atlas);
+        font.outlineColor = Color.RED;
+        font.outlineWidth = 3;
+        if (face.opticalSize() != null) {
+            font.opticalSize(face.opticalSize().max);
         }
+        font.weight(500);
+        font.applyVariation();
+
+        RichLayout richLayout = new RichLayout(text, fontSize);
+        richLayout.setFont(font);
+        richLayout.baseColor = Color.WHITE;
+        richLayout.outlineColor = Color.ORANGE;
+        richLayout.outlineWidth = 2;
+        richLayout.markup();
 
         Gdx.input.setInputProcessor(new InputProcessor() {
             @Override
@@ -110,18 +95,17 @@ public class Main implements ApplicationListener {
 
             @Override
             public boolean keyTyped(char character) {
-                if (character == '\n' || character == '\r') {
-                    return false;
-                }
-                if (character == '\b') {
-                    if (text.isEmpty()) {
-                        return false;
-                    }
-                    text = text.substring(0, text.length() - 1);
-                } else {
-                    text += character;
-                }
-                updateText();
+//                if (character == '\n' || character == '\r') {
+//                    return false;
+//                }
+//                if (character == '\b') {
+//                    if (text.isEmpty()) {
+//                        return false;
+//                    }
+//                    text = text.substring(0, text.length() - 1);
+//                } else {
+//                    text += character;
+//                }
                 return true;
             }
 
@@ -225,36 +209,13 @@ public class Main implements ApplicationListener {
             useGPU = !useGPU;
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.C) && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
-            text = "";
-            updateText();
-        }
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        batch.setColor(Color.WHITE);
 
-        if (useGPU) {
-            gpuBatch.setProjectionMatrix(camera.combined);
-            gpuBatch.begin();
-            gpuBatch.setColor(Color.WHITE);
+        richLayout.draw(batch, 0, 0);
 
-            for (int i = 0; i < fonts.length; ++i) {
-                Font font = fonts[i];
-                Layout layout = layouts[i];
-                font.drawGPUText(gpuBatch, layout, 32, -32 - font.getLineHeight(fontSize) * i + Gdx.graphics.getHeight() - font.getAscender(fontSize));
-            }
-
-            gpuBatch.end();
-        } else {
-            batch.setProjectionMatrix(camera.combined);
-            batch.begin();
-            batch.setColor(Color.WHITE);
-
-            for (int i = 0; i < fonts.length; ++i) {
-                Font font = fonts[i];
-                Layout layout = layouts[i];
-                font.drawText(batch, layout, 32, -32 - font.getLineHeight(fontSize) * i + Gdx.graphics.getHeight() - font.getAscender(fontSize));
-            }
-
-            batch.end();
-        }
+        batch.end();
 
     }
 
@@ -268,9 +229,7 @@ public class Main implements ApplicationListener {
 
     @Override
     public void dispose() {
-        for (Font font : fonts) {
-            font.dispose();
-        }
+        font.dispose();
         atlas.dispose();
         face.dispose();
     }
