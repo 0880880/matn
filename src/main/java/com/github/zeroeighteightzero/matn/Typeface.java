@@ -87,7 +87,7 @@ public class Typeface implements Disposable {
         this.upem = (int) Matn.matn_typeface_get_upem(mtFace);
 
         this.underlinePosition = Matn.matn_typeface_get_underline_position(mtFace);
-        this.underlineThickness = Matn.matn_typeface_get_underline_position(mtFace);
+        this.underlineThickness = Matn.matn_typeface_get_underline_thickness(mtFace);
         this.strikoutPosition = Matn.matn_typeface_get_strikeout_position(mtFace);
         this.strikoutThickness = Matn.matn_typeface_get_strikeout_thickness(mtFace);
     }
