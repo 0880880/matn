@@ -772,12 +772,11 @@ public class Font implements Disposable {
      */
     public void drawGlyph(Batch batch, Glyph glyph, float fontSize, float x, float y, float sx, float sy, float rot, float color) {
         float scale = fontSize / glyph.size;
-        float width = glyph.width * scale;
-        float height = glyph.height * scale;
+        float width = glyph.width;
+        float height = glyph.height;
         float cx = width * .5f;
-        float cy = height * .5f;
-        float drawX = glyph.left * scale + x;
-        float drawY = glyph.top * scale + y;
+        float drawX = glyph.left * scale * sx + x;
+        float drawY = glyph.top * scale * sy + y;
 
         batch.setPackedColor(color);
         batch.draw(
@@ -785,11 +784,11 @@ public class Font implements Disposable {
                 drawX,
                 drawY,
                 cx,
-                cy,
+                0,
                 width,
                 height,
-                sx,
-                sy,
+                sx * scale,
+                sy * scale,
                 rot * MathUtils.radiansToDegrees,
                 glyph.x,
                 glyph.y,
