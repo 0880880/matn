@@ -1,6 +1,7 @@
 package com.github.zeroeighteightzero.matn;
 
 import com.badlogic.gdx.jnigen.runtime.pointer.integer.UShortPointer;
+import com.badlogic.gdx.utils.Disposable;
 
 /**
  * A UTF-16 text paragraph shaped as a single unit.
@@ -8,7 +9,7 @@ import com.badlogic.gdx.jnigen.runtime.pointer.integer.UShortPointer;
  * <p>Constructing a paragraph copies the text into a native-side buffer, making it
  * suitable for passing to the shaping functions in {@link Font}.</p>
  */
-public class Paragraph {
+public class Paragraph implements Disposable {
     protected final UShortPointer ptr;
     public final int length;
 
@@ -28,5 +29,10 @@ public class Paragraph {
         for (int i = 0; i < length; ++i) {
             ptr.setUShort(text.charAt(i), i);
         }
+    }
+
+    @Override
+    public void dispose() {
+        ptr.free();
     }
 }
