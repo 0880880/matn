@@ -1,292 +1,378 @@
 package com.github.zeroeighteightzero.matn;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.graphics.Colors;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.FloatArray;
+import com.badlogic.gdx.utils.IntArray;
+import com.badlogic.gdx.utils.ShortArray;
 
-/**
- * Prepares text for rendering by shaping, wrapping, and splitting it into lines.
- *
- * <p>A layout holds a font, a font size, the text to render, and optional wrapping
- * constraints. After configuration, {@link #update()} re-shapes and re-wraps the text and
- * repopulates the per-glyph {@link #advances}, {@link #offsets}, {@link #sizing}, and
- * {@link #rotation} arrays consumed by the drawing methods in {@link Font}.</p>
- */
 public class Layout {
 
-    protected Paragraph paragraph = null;
-    protected final Array<Line> lines = new Array<>(true, 8);
-    protected Font.ShapeResult shapeResult;
-    protected Font font;
-    protected float fontSize;
-    protected final StringBuilder text = new StringBuilder();
-    protected boolean wrap = false;
-    protected float maxWidth;
-    protected float baseColor = Color.WHITE_FLOAT_BITS;
+    private Font font;
+    protected int fontSize;
+    private String text;
+    public Color baseColor = Color.WHITE;
+    public int outlineWidth = 1;
+    public Color outlineColor = Color.BLACK;
 
-    /** The overall width of the laid-out text. */
-    public float width;
-    /** The overall height of the laid-out text. */
-    public float height;
-    /** The height of each laid-out line. */
-    public float lineHeight;
+    public Array<Run> runs = new Array<>(4);
 
-    private boolean textDirty = false;
-    private boolean fontDirty = false;
-    private boolean wrapDirty = false;
+    public FloatArray offsets = new FloatArray();
+    public FloatArray advances = new FloatArray();
 
-    /** The horizontal advance for each glyph, in drawing order. */
-    public final FloatArray advances = new FloatArray(true, 8);
-    /** The horizontal and vertical offset for each glyph, in drawing order. */
-    public final FloatArray offsets = new FloatArray(true, 16);
-    /** The horizontal and vertical scale for each glyph, in drawing order. */
-    public final FloatArray sizing = new FloatArray(true, 16);
-    /** The rotation for each glyph, in drawing order. */
-    public final FloatArray rotation = new FloatArray(true, 8);
+    public static final short BOLD = 1 << 10;
+    public static final short OBLIQUE = 1 << 9;
+    public static final short UNDERLINE = 1 << 8;
+    public static final short STRIKETHROUGH = 1 << 7;
+    public static final short SUBSCRIPT = 1 << 5;
+    public static final short MIDSCRIPT = 2 << 5;
+    public static final short SUPERSCRIPT = 3 << 5;
+    public static final short OUTLINE = 1 << 4;
 
-    /**
-     * Creates a layout for the given font and font size with empty text.
-     *
-     * @param font the font used to shape the text
-     * @param fontSize the font size in pixels
-     */
-    public Layout(Font font, float fontSize) {
-        this.font = font;
+    private boolean hasWeight;
+    private boolean hasItalic;
+    private boolean hasSlant;
+
+    public Layout(String text, int fontSize) {
+        this.text = text;
         this.fontSize = fontSize;
     }
 
-    /**
-     * Creates a layout for the given text, font, and font size.
-     *
-     * @param text the initial text to lay out
-     * @param font the font used to shape the text
-     * @param fontSize the font size in pixels
-     */
-    public Layout(String text, Font font, float fontSize) {
+    public void setFont(Font font) {
+        hasWeight = font.hasVariableAxis("wght");
+        hasItalic = font.hasVariableAxis("ital");
+        hasSlant = font.hasVariableAxis("slnt");
         this.font = font;
+        markup();
+    }
+
+    public void setFontSize(int fontSize) {
         this.fontSize = fontSize;
-        addText(text);
+        markup();
     }
 
-    private void shape() {
-        shapeResult = font.shape(paragraph);
+    public void setText(String text) {
+        this.text = text;
+        markup();
     }
 
-    // this is basic
-    private int findBreakBefore(int i) {
-        for (int j = i - 1; j >= 0; --j) {
-            char ch = text.charAt(j);
-            if (ch == ' ' || ch == '\t' || Character.isWhitespace(ch)) {
-                return j;
+    private void setFontState(short flags) {
+        font.setSyntheticBold(0);
+        font.setSyntheticSlant(0);
+        if (hasWeight) {
+            font.weight(500);
+        }
+        if (hasItalic) {
+            font.italic(0);
+        } else if (hasSlant) {
+            font.slant(0);
+        }
+        font.outlineWidth = 0;
+        if ((flags & BOLD) != 0) {
+            if (hasWeight) {
+                font.weight(700);
+            } else {
+                font.setSyntheticBold(.05f);
             }
         }
-        return i - 1;
+        if ((flags & OBLIQUE) != 0) {
+            if (hasItalic) {
+                font.italic(1);
+            } else if (hasSlant) {
+                font.slant(-10);
+            } else {
+                font.setSyntheticSlant(.22f);
+            }
+        }
+        if ((flags & OUTLINE) != 0) {
+            font.outlineWidth = outlineWidth;
+        }
+        font.applyVariation();
     }
 
-    private void wrapLines() {
-        advances.clear();
-        offsets.clear();
-        sizing.clear();
-        rotation.clear();
-        width = 0;
-        height = 0;
-        Line currentLine = new Line(shapeResult.advances.length);
-        float penX = 0;
-        lineHeight = font.getLineHeight(fontSize);
-        for (int i = 0; i < shapeResult.advances.length; ++i) {
-            currentLine.width = penX;
-            width = Math.max(width, penX);
-            long cluster = shapeResult.clusters[i];
-            char ch = text.charAt((int) cluster);
-            if (ch == '\n') {
-                lines.add(currentLine);
-                currentLine = new Line(shapeResult.advances.length - i - 1);
-                penX = 0;
-                height += lineHeight;
-            } else {
-                float adv = shapeResult.advances[i].x * fontSize;
-                if (wrap && i > 0 && penX + adv > maxWidth) {
-                    int brk = findBreakBefore((int) cluster);
-                    int distance = 0;
-                    while (currentLine.notEmpty() && currentLine.clusters.get(currentLine.clusters.size - 1) != brk) {
-                        ++distance;
-                        currentLine.glyphs.pop();
-                        currentLine.flags.pop();
-                        currentLine.clusters.pop();
-                        advances.pop();
-                        offsets.pop();
-                        offsets.pop();
-                        sizing.pop();
-                        sizing.pop();
-                        rotation.pop();
-                    }
-                    lines.add(currentLine);
-                    currentLine = new Line(shapeResult.advances.length - i - 1);
-                    penX = 0;
-                    height += lineHeight;
-                    i -= distance + 1;
-                    continue;
+    public void markup() {
+
+        this.runs.clear();
+        this.advances.clear();
+        this.offsets.clear();
+
+        ShortArray flagsHistory = new ShortArray(5);
+        FloatArray colorHistory = new FloatArray(5);
+        FloatArray scaleHistory = new FloatArray(5);
+
+        IntArray segments = new IntArray(10);
+        ShortArray flags = new ShortArray(5);
+        FloatArray colors = new FloatArray(5);
+        FloatArray scales = new FloatArray(5);
+
+        short currentFlags = 0;
+        float currentColor = baseColor.toFloatBits();
+        float currentScale = 1;
+
+        StringBuilder sb = new StringBuilder(text.length()/3);
+
+        boolean brackets = false;
+        boolean escape = false;
+
+        int start = 0;
+
+        for (int i = 0; i <= text.length(); ) {
+
+            if (i == text.length()) {
+                if (!brackets && sb.length() > 0) {
+                    segments.add(start, i);
+                    flags.add(currentFlags);
+                    colors.add(currentColor);
+                    scales.add(currentScale);
                 }
+                break;
+            }
+
+            int codePoint = text.codePointAt(i);
+
+            if (codePoint == '[' && !escape) {
+                if (sb.length() > 0) {
+                    segments.add(start, i);
+                    flags.add(currentFlags);
+                    colors.add(currentColor);
+                    scales.add(currentScale);
+                    sb.setLength(0);
+                }
+                brackets = true;
+            } else if (codePoint == ']' && !escape) {
+                String s =  sb.toString();
+                start = i + 1;
+                switch (s) {
+                    case "":
+                        if (colorHistory.isEmpty()) {
+                            currentFlags = 0;
+                            currentColor = baseColor.toFloatBits();
+                            currentScale = 1;
+                        } else {
+                            currentFlags = flagsHistory.pop();
+                            currentColor = colorHistory.pop();
+                            currentScale = scaleHistory.pop();
+                        }
+                        break;
+                    case " ":
+                        flagsHistory.clear();
+                        colorHistory.clear();
+                        scaleHistory.clear();
+                        currentFlags = 0;
+                        currentColor = baseColor.toFloatBits();
+                        currentScale = 1;
+                        break;
+                    case "*":
+                    case "B":
+                    case "BOLD":
+                    case "STRONG":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= BOLD;
+                        break;
+                    case "/":
+                    case "I":
+                    case "OBLIQUE":
+                    case "ITALIC":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= OBLIQUE;
+                        break;
+                    case "^":
+                    case "SUPER":
+                    case "SUPERSCRIPT":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= SUPERSCRIPT;
+                        break;
+                    case "=":
+                    case "MID":
+                    case "MIDSCRIPT":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= MIDSCRIPT;
+                        break;
+                    case ".":
+                    case "SUB":
+                    case "SUBSCRIPT":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= SUBSCRIPT;
+                        break;
+                    case "_":
+                    case "U":
+                    case "UNDER":
+                    case "UNDERLINE":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= UNDERLINE;
+                        break;
+                    case "~":
+                    case "STRIKE":
+                    case "STRIKETHROUGH":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= STRIKETHROUGH;
+                        break;
+                    case "#":
+                    case "OUTLINE":
+                    case "BLACK OUTLINE":
+                    case "BLACKEN":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentFlags ^= OUTLINE;
+                        break;
+                    case "%":
+                    case "NOSCALE":
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentScale = 1;
+                        break;
+                }
+                if (s.startsWith("%")) {
+                    try {
+                        float percentage = Float.parseFloat(s.substring(1));
+                        flagsHistory.add(currentFlags);
+                        colorHistory.add(currentColor);
+                        scaleHistory.add(currentScale);
+                        currentScale = percentage / 100f;
+                    } catch (Exception ignored) {}
+                }
+                Color foundColor = Colors.get(s);
+                if (foundColor != null) {
+                    flagsHistory.add(currentFlags);
+                    colorHistory.add(currentColor);
+                    scaleHistory.add(currentScale);
+                    currentColor = foundColor.toFloatBits();
+                }
+                brackets = false;
+                sb.setLength(0);
+            } else {
+                sb.appendCodePoint(codePoint);
+            }
+            escape = codePoint == '\\';
+
+            i += Character.charCount(codePoint);
+        }
+
+        Paragraph p = new Paragraph(text);
+
+        float penX = 0;
+
+        font.outlineColor = outlineColor;
+        for (int i = 0; i < colors.size; ++i) {
+            int pStart = segments.get(i * 2);
+            int pEnd = segments.get(i * 2 + 1);
+            float col = colors.get(i);
+            short flag = flags.get(i);
+            setFontState(flag);
+            Font.ShapeResult shape = font.shape(p, pStart, pEnd-pStart);
+            float sx = scales.get(i);
+            float sy = scales.get(i);
+
+            boolean subscript = (flag & SUBSCRIPT) != 0;
+            boolean midscript = (flag & MIDSCRIPT) != 0;
+            boolean superscript = (flag & SUPERSCRIPT) != 0;
+
+            if (subscript || midscript || superscript) {
+                sx *= .4f;
+                sy *= .4f;
+            }
+
+            Run run = new Run(pEnd - pStart, flag, col, sx, sy);
+            run.font = font;
+            run.x = penX;
+
+            for (int j = 0; j < shape.advances.length; ++j) {
+                Glyph glyph = font.atlas.getGlyph(font, shape.glyphIDs[j], fontSize);
+                float adv = shape.advances[j].x * fontSize * sx;
+                run.add(glyph);
+                run.clusters.add(shape.clusters[j]);
+                float ox = shape.offsets[j].x * fontSize * sx + (sx-1) * glyph.width / 2f;
+                float oy = shape.offsets[j].y * fontSize * sy;
+
+                if (midscript) {
+                    oy += glyph.height;
+                }
+                if (subscript) {
+                    oy -= (font.getAscender(fontSize) + font.getDescender(fontSize)) / 2f;
+                }
+                offsets.add(ox, oy);
                 advances.add(adv);
-                offsets.add(shapeResult.offsets[i].x * fontSize, shapeResult.offsets[i].y * fontSize);
-                sizing.add(1, 1);
-                rotation.add(0);
-                currentLine.add(shapeResult.glyphIDs[i], baseColor, (short) 0);
-                currentLine.clusters.add(cluster);
                 penX += adv;
             }
+            run.width = penX - run.x;
+
+            runs.add(run);
         }
-        if (currentLine.notEmpty()) {
-            lines.add(currentLine);
-            height += lineHeight;
+
+    }
+
+    public void draw(Batch batch, float x, float y) {
+        int idx = 0;
+        for (int j = 0; j < this.runs.size; ++j) {
+            Run run = this.runs.get(j);
+            short flags = run.flags;
+            float color = run.color;
+            float sx = run.scaleX;
+            float sy = run.scaleY;
+            batch.setPackedColor(color);
+            float penX = 0;
+            for (int k = 0; k < run.glyphs.size; ++k) {
+                Glyph glyph = run.getGlyph(k);
+                float ox = this.offsets.get(idx * 2);
+                float oy = this.offsets.get(idx * 2 + 1);
+                font.drawGlyph(batch, glyph, this.fontSize,  x + penX + run.x + ox, y + run.y + oy, sx, sy, 0, color);
+                penX += this.advances.get(idx);
+                idx++;
+            }
+            boolean outline = (flags & Layout.OUTLINE) != 0;
+            if ((flags & Layout.UNDERLINE) != 0) {
+                float underlinePosition = run.font.face.underlinePosition * this.fontSize + run.font.face.underlineThickness * this.fontSize * .5f;
+                float start = run.x;
+                float end = 0;
+                idx -= run.glyphs.size;
+                for (int k = 0; k < run.glyphs.size; ++k) {
+                    if (underlinePosition > run.glyphs.get(k).top) {
+                        if (outline) {
+                            batch.setColor(this.outlineColor);
+                            batch.draw(run.font.atlas.pixel, x + start - this.outlineWidth, y + run.y + underlinePosition * sy - this.outlineWidth, end + this.outlineWidth * 2, (run.font.face.underlineThickness * this.fontSize + this.outlineWidth * 2) * sy);
+                            batch.setPackedColor(color);
+                        }
+                        batch.draw(run.font.atlas.pixel, x + start, y + run.y + underlinePosition * sy, end + run.x - start, run.font.face.underlineThickness * this.fontSize * sy);
+                        start += end + this.advances.get(idx);
+                        end = -this.advances.get(idx);
+                    }
+                    end += this.advances.get(idx);
+                    idx++;
+                }
+                if (outline) {
+                    batch.setColor(this.outlineColor);
+                    batch.draw(run.font.atlas.pixel, x + start - this.outlineWidth, y + run.y + underlinePosition * sy - this.outlineWidth, end + this.outlineWidth * 2, (run.font.face.underlineThickness * this.fontSize + this.outlineWidth * 2) * sy);
+                    batch.setPackedColor(color);
+                }
+                batch.draw(run.font.atlas.pixel, x + start, y + run.y + underlinePosition * sy, end, run.font.face.underlineThickness * this.fontSize * sy);
+            }
+            if ((flags & Layout.STRIKETHROUGH) != 0) {
+                if (outline) {
+                    batch.setColor(this.outlineColor);
+                    batch.draw(run.font.atlas.pixel, x + run.x - this.outlineWidth, y + run.y + run.font.face.strikoutPosition * this.fontSize * sy - this.outlineWidth - run.font.face.strikoutThickness * this.fontSize * sy * .5f, run.width + this.outlineWidth * 2, (run.font.face.strikoutThickness * this.fontSize + this.outlineWidth * 2) * sy);
+                    batch.setPackedColor(color);
+                }
+                batch.draw(run.font.atlas.pixel, x + run.x, y + run.y + run.font.face.strikoutPosition * this.fontSize * sy - run.font.face.strikoutThickness * this.fontSize * sy * .5f, run.width, run.font.face.strikoutThickness * this.fontSize * sy);
+            }
         }
-        if (shapeResult.rtl) {
-            lines.reverse();
-        }
     }
 
-    /**
-     * Re-shapes and re-wraps the current text, refreshing line and per-glyph data.
-     *
-     * <p>Calling this is generally unnecessary because the configuration mutators invoke
-     * it automatically; it is exposed so that repeated property changes can be batched
-     * before a single update.</p>
-     */
-    public void update() {
-        lines.clear();
-        if (textDirty) {
-            paragraph = new Paragraph(text.toString());
-            shape();
-        } else if (fontDirty) {
-            shape();
-        } else if (wrapDirty) {
-            ;
-        } else {
-            shape();
-        }
-        wrapLines();
-    }
-
-    /**
-     * Appends text to the layout and re-shapes it.
-     *
-     * @param text the text to append
-     */
-    public void addText(String text) {
-        this.text.append(text);
-        textDirty = true;
-        update();
-    }
-
-    /**
-     * Replaces the layout text and re-shapes it.
-     *
-     * <p>If the new text is identical to the current text, no work is performed.</p>
-     *
-     * @param text the new text
-     */
-    public void setText(String text) {
-        if (this.text.length() != text.length() || !this.text.toString().equals(text)) {
-            this.text.setLength(0);
-            addText(text);
-        }
-    }
-
-    /**
-     * Returns the current layout text.
-     *
-     * @return the current text
-     */
-    public String getText() {
-        return text.toString();
-    }
-
-    /**
-     * Sets the font used to shape the text and re-shapes it.
-     *
-     * @param font the new font
-     */
-    public void font(Font font) {
-        if (this.font != font) {
-            fontDirty = true;
-        }
-        this.font = font;
-    }
-
-    /**
-     * Returns the font used to shape the text.
-     *
-     * @return the current font
-     */
-    public Font font() {
-        return font;
-    }
-
-    /**
-     * Sets the font size in pixels and re-lays-out the text.
-     *
-     * @param px the font size in pixels
-     */
-    public void fontSize(float px) {
-        if (!MathUtils.isEqual(px, this.fontSize)) {
-            wrapDirty = true;
-        }
-        this.fontSize = px;
-    }
-
-    /**
-     * Returns the font size in pixels.
-     *
-     * @return the current font size
-     */
-    public float fontSize() {
-        return fontSize;
-    }
-
-    /**
-     * Sets whether lines should wrap at {@link #maxWidth}.
-     *
-     * @param wrap {@code true} to enable line wrapping
-     */
-    public void wrap(boolean wrap) {
-        if (wrap != this.wrap) {
-            wrapDirty = true;
-        }
-        this.wrap = wrap;
-    }
-
-    /**
-     * Returns whether line wrapping is enabled.
-     *
-     * @return {@code true} if lines wrap at {@link #maxWidth}
-     */
-    public boolean wrap() {
-        return wrap;
-    }
-
-    /**
-     * Sets the maximum line width used when wrapping is enabled.
-     *
-     * @param width the maximum line width in pixels
-     */
-    public void maxWidth(float width) {
-        if (!MathUtils.isEqual(this.maxWidth, width)) {
-            wrapDirty = true;
-        }
-        this.maxWidth = width;
-    }
-
-    /**
-     * Returns the maximum line width used when wrapping is enabled.
-     *
-     * @return the maximum line width in pixels
-     */
-    public float maxWidth() {
-        return maxWidth;
-    }
-
-    public void baseColor(Color color) {
-        this.baseColor = color.toFloatBits();
-    }
 }
