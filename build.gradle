@@ -79,7 +79,6 @@ jnigen {
         fileToParse = "matn.h"
         options = [
                 "-Ijni/matn/include",
-                "-Ijni/SheenBidi/Headers",
                 "-Ijni/harfbuzz/src",
                 "-Ijni/harfbuzz-config",
         ]
@@ -89,12 +88,12 @@ jnigen {
         headerDirs += [
                 "jni/harfbuzz-config",
                 "jni/harfbuzz/src",
-                "jni/SheenBidi/Headers",
-                "jni/SheenBidi/Source",
                 "jni/matn/include"
         ]
 
-        cIncludes = ["jni/SheenBidi/Source/SheenBidi.c"]
+        cIncludes = [
+                ""
+        ]
 
         cppIncludes = [
                 "jni/harfbuzz/src/harfbuzz-world.cc",
