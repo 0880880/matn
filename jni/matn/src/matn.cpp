@@ -13,8 +13,6 @@
 #include <hb-raster.h>
 #include <hb.h>
 
-#include <SheenBidi/SheenBidi.h>
-
 #define FONT_SCALE 128
 #define INV_FONT_SCALE (1.0f / (float)FONT_SCALE)
 
@@ -826,70 +824,6 @@ MatnResult matn_blob_get_all(const MatnBlob *blob, MatnBlobView *out) {
   out->format = blob->format;
 
   return MATN_SUCCESS;
-}
-
-MatnTextRuns *matn_run_bidi(const char *text, uint32_t length) {
-    SBCodepointSequence seq;
-    seq.stringEncoding = SBStringEncodingUTF8;
-    seq.stringBuffer = static_cast<const void *>(text);
-    seq.stringLength = length;
-
-    SBAlgorithmRef alg = SBAlgorithmCreate(&seq);
-
-    SBUInteger p_offset = 0;
-
-    std::vector<uint32_t> offsets;
-    std::vector<uint32_t> lengths;
-    std::vector<unsigned char> levels;
-
-    while (p_offset < length) {
-        SBUInteger p_length;
-        SBAlgorithmGetParagraphBoundary(alg,
-            p_offset, length,
-            &p_length, NULL);
-
-        SBParagraphRef paragraph = SBAlgorithmCreateParagraph(alg, p_offset, p_length, SBLevelDefaultLTR);
-
-        SBLineRef line = SBParagraphCreateLine(paragraph, 0, p_length);
-
-        const SBRun *runs = SBLineGetRunsPtr(line);
-
-        for (uint32_t i = 0; i < SBLineGetRunCount(line); ++i) {
-            const SBRun run = runs[i];
-            offsets.push_back(run.offset);
-            lengths.push_back(run.length);
-            levels.push_back(run.level);
-        }
-
-        SBLineRelease(line);
-
-        SBParagraphRelease(paragraph);
-
-        p_offset += p_length;
-    }
-
-    MatnTextRuns *tr = new MatnTextRuns();
-    tr->offsets = offsets;
-    tr->lengths = lengths;
-    tr->levels = levels;
-    return tr;
-}
-
-uint32_t matn_bidi_run_count(MatnTextRuns *tr) {
-    return tr ? tr->offsets.size() : 0;
-}
-uint32_t *matn_bidi_get_offsets(MatnTextRuns *tr) {
-    return tr ? tr->offsets.data() : nullptr;
-}
-uint32_t *matn_bidi_get_lengths(MatnTextRuns *tr) {
-    return tr ? tr->lengths.data() : nullptr;
-}
-unsigned char *matn_bidi_get_levels(MatnTextRuns *tr) {
-    return tr ? tr->levels.data() : nullptr;
-}
-
-void matn_bidi_destroy(MatnTextRuns *tr) {
-    delete tr;
 }
 
 void matn_cleanup() {
