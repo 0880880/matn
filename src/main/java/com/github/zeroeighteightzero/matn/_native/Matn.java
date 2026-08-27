@@ -492,6 +492,19 @@ static jclass cxxExceptionClass = NULL;
     	return 0;
     */
 
+    public static MatnResult matn_rasterize_glyph_mtsdf(MatnFont.MatnFontPointer font, int glyph_id, long resolution, PointerPointer<MatnBlob.MatnBlobPointer> out_blob) {
+        return MatnResult.getByIndex((int) matn_rasterize_glyph_mtsdf_internal(font.getPointer(), glyph_id, resolution, out_blob.getPointer()));
+    }
+
+    public static native int matn_rasterize_glyph_mtsdf_internal(long font, int glyph_id, long resolution, long out_blob);/*
+    	HANDLE_JAVA_EXCEPTION_START()
+    	CHECK_AND_THROW_C_TYPE(env, uint32_t, resolution, 2, return 0);
+    	CHECK_AND_THROW_C_TYPE(env, int32_t, glyph_id, 1, return 0);
+    	return (jint)matn_rasterize_glyph_mtsdf((MatnFont *)font, (int32_t)glyph_id, (uint32_t)resolution, (MatnBlob **)out_blob);
+    	HANDLE_JAVA_EXCEPTION_END()
+    	return 0;
+    */
+
     public static void matn_blob_destroy(MatnBlob.MatnBlobPointer blob) {
         matn_blob_destroy_internal(blob.getPointer());
     }
@@ -550,24 +563,24 @@ static jclass cxxExceptionClass = NULL;
     	return 0;
     */
 
-    public static int matn_blob_get_left(MatnBlob.MatnBlobPointer blob) {
+    public static float matn_blob_get_left(MatnBlob.MatnBlobPointer blob) {
         return matn_blob_get_left_internal(blob.getPointer());
     }
 
-    public static native int matn_blob_get_left_internal(long blob);/*
+    public static native float matn_blob_get_left_internal(long blob);/*
     	HANDLE_JAVA_EXCEPTION_START()
-    	return (jint)matn_blob_get_left((const MatnBlob *)blob);
+    	return (jfloat)matn_blob_get_left((const MatnBlob *)blob);
     	HANDLE_JAVA_EXCEPTION_END()
     	return 0;
     */
 
-    public static int matn_blob_get_top(MatnBlob.MatnBlobPointer blob) {
+    public static float matn_blob_get_top(MatnBlob.MatnBlobPointer blob) {
         return matn_blob_get_top_internal(blob.getPointer());
     }
 
-    public static native int matn_blob_get_top_internal(long blob);/*
+    public static native float matn_blob_get_top_internal(long blob);/*
     	HANDLE_JAVA_EXCEPTION_START()
-    	return (jint)matn_blob_get_top((const MatnBlob *)blob);
+    	return (jfloat)matn_blob_get_top((const MatnBlob *)blob);
     	HANDLE_JAVA_EXCEPTION_END()
     	return 0;
     */

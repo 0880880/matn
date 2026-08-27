@@ -7,7 +7,7 @@ import com.badlogic.gdx.jnigen.runtime.pointer.VoidPointer;
 
 public enum MatnPixelFormat implements CEnum {
 
-    MATN_PIXEL_FORMAT_A8(0), MATN_PIXEL_FORMAT_BGRA32(1);
+    MATN_PIXEL_FORMAT_A8(0), MATN_PIXEL_FORMAT_BGRA32(1), MATN_PIXEL_FORMAT_RGBA32(2);
 
     private static final int __size = 4;
 
@@ -31,6 +31,8 @@ public enum MatnPixelFormat implements CEnum {
                 return MATN_PIXEL_FORMAT_A8;
             case 1:
                 return MATN_PIXEL_FORMAT_BGRA32;
+            case 2:
+                return MATN_PIXEL_FORMAT_RGBA32;
             default:
                 throw new IllegalArgumentException("Index " + index + " does not exist.");
         }
