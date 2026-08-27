@@ -87,8 +87,11 @@ jnigen {
     all {
         headerDirs += [
                 "jni/harfbuzz-config",
+                "jni/msdfgen-config",
                 "jni/harfbuzz/src",
-                "jni/matn/include"
+                "jni/matn/include",
+                "jni/msdfgen",
+                "jni/msdfgen/core",
         ]
 
         cIncludes = [
@@ -97,7 +100,26 @@ jnigen {
 
         cppIncludes = [
                 "jni/harfbuzz/src/harfbuzz-world.cc",
-                "jni/matn/src/matn.cpp",
+                "jni/msdfgen/core/Contour.cpp",
+                "jni/msdfgen/core/contour-combiners.cpp",
+                "jni/msdfgen/core/convergent-curve-ordering.cpp",
+                "jni/msdfgen/core/DistanceMapping.cpp",
+                "jni/msdfgen/core/edge-coloring.cpp",
+                "jni/msdfgen/core/edge-segments.cpp",
+                "jni/msdfgen/core/edge-selectors.cpp",
+                "jni/msdfgen/core/EdgeHolder.cpp",
+                "jni/msdfgen/core/equation-solver.cpp",
+                "jni/msdfgen/core/msdf-error-correction.cpp",
+                "jni/msdfgen/core/MSDFErrorCorrection.cpp",
+                "jni/msdfgen/core/msdfgen.cpp",
+                "jni/msdfgen/core/Projection.cpp",
+                "jni/msdfgen/core/rasterization.cpp",
+                "jni/msdfgen/core/render-sdf.cpp",
+                "jni/msdfgen/core/Scanline.cpp",
+                "jni/msdfgen/core/sdf-error-estimation.cpp",
+                "jni/msdfgen/core/Shape.cpp",
+                "jni/msdfgen/core/shape-description.cpp",
+                "jni/matn/src/matn.cpp"
         ]
 
         cExcludes = [
