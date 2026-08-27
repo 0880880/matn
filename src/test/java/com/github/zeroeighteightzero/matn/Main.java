@@ -34,7 +34,7 @@ public class Main implements ApplicationListener {
     Font font;
     RichLayout richLayout;
 
-    int fontSize = 48;
+    int fontSize = 64;
     float targetZoom = 1;
     boolean dragging = false;
     int dragButton = -1;
@@ -66,7 +66,7 @@ public class Main implements ApplicationListener {
 
         gpuBatch = new GPUGlyphBatch();
 
-        Font font = new Font(face, atlas);
+        font = new Font(face, atlas);
         font.outlineColor = Color.RED;
         font.outlineWidth = 3;
         if (face.opticalSize() != null) {
@@ -75,7 +75,7 @@ public class Main implements ApplicationListener {
         font.weight(500);
         font.applyVariation();
 
-        RichLayout richLayout = new RichLayout(text, fontSize);
+        richLayout = new RichLayout(text, fontSize);
         richLayout.setFont(font);
         richLayout.baseColor = Color.WHITE;
         richLayout.outlineColor = Color.ORANGE;
