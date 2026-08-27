@@ -13,6 +13,8 @@
 #include <hb-raster.h>
 #include <hb.h>
 
+#include <msdfgen.h>
+
 #define FONT_SCALE 128
 #define INV_FONT_SCALE (1.0f / (float)FONT_SCALE)
 
@@ -56,6 +58,8 @@ struct MatnTypeface {
   std::vector<std::vector<float>> instance_coords;
   std::vector<std::string> instance_names;
 
+  hb_draw_funcs_t *msdfgen_funcs;
+
   int has_color = 0, is_scalable = 0, has_variations = 0;
 
   uint32_t upem;
@@ -67,6 +71,7 @@ struct MatnTypeface {
   int font_count = 0;
 
   ~MatnTypeface() {
+    hb_draw_funcs_destroy(msdfgen_funcs);
     assert(font_count == 0);
     if (hb_face) {
       hb_face_destroy(hb_face);
@@ -126,8 +131,8 @@ struct MatnBlob {
   int width = 0;
   int height = 0;
   int stride = 0;
-  int left = 0;
-  int top = 0;
+  float left = 0;
+  float top = 0;
   MatnPixelFormat format = MATN_PIXEL_FORMAT_A8;
 };
 
@@ -141,6 +146,78 @@ static int16_t
 read_i16_be(const uint8_t *p)
 {
     return (int16_t)(((uint16_t)p[0] << 8) | p[1]);
+}
+
+struct MSDFDrawContext {
+  float scale;
+  msdfgen::Point2 position;
+  msdfgen::Shape *shape;
+  msdfgen::Contour *contour;
+};
+
+static msdfgen::Point2 hb_point2(float x, float y, double scale) {
+    return msdfgen::Point2(scale*x, scale*y);
+}
+
+static void hb_move_to(hb_draw_funcs_t *dfuncs,
+                                                 void *user,
+                                                 hb_draw_state_t *st,
+                                                 float to_x,
+                                                 float to_y,
+                                                 void *face) {
+    MSDFDrawContext *context = reinterpret_cast<MSDFDrawContext *>(user);
+    if (!(context->contour && context->contour->edges.empty())) {
+      context->contour = &context->shape->addContour();
+    }
+    context->position = hb_point2(to_x, to_y, context->scale);
+}
+
+static void hb_line_to(hb_draw_funcs_t *dfuncs,
+                                                 void *user,
+                                                 hb_draw_state_t *st,
+                                                 float to_x,
+                                                 float to_y,
+                                                 void *face) {
+    MSDFDrawContext *context = reinterpret_cast<MSDFDrawContext *>(user);
+    msdfgen::Point2 endpoint = hb_point2(to_x, to_y, context->scale);
+    if (endpoint != context->position) {
+        context->contour->addEdge(msdfgen::EdgeHolder(context->position, endpoint));
+        context->position = endpoint;
+    }
+}
+
+static void hb_quadratic_to(hb_draw_funcs_t *dfuncs,
+                                                            void *user,
+                                                            hb_draw_state_t *st,
+                                                            float control_x,
+                                                            float control_y,
+                                                            float to_x,
+                                                            float to_y,
+                                                            void *face) {
+    MSDFDrawContext *context = reinterpret_cast<MSDFDrawContext *>(user);
+    msdfgen::Point2 endpoint = hb_point2(to_x, to_y, context->scale);
+    if (endpoint != context->position) {
+        context->contour->addEdge(msdfgen::EdgeHolder(context->position, hb_point2(control_x, control_y, context->scale), endpoint));
+        context->position = endpoint;
+    }
+}
+
+static void hb_cubic_to(hb_draw_funcs_t *dfuncs,
+                                                    void *user,
+                                                    hb_draw_state_t *st,
+                                                    float control1_x,
+                                                    float control1_y,
+                                                    float control2_x,
+                                                    float control2_y,
+                                                    float to_x,
+                                                    float to_y,
+                                                    void *face) {
+    MSDFDrawContext *context = reinterpret_cast<MSDFDrawContext *>(user);
+    msdfgen::Point2 endpoint = hb_point2(to_x, to_y, context->scale);
+    if (endpoint != context->position || msdfgen::crossProduct(hb_point2(control1_x, control1_y, context->scale)-endpoint, hb_point2(control2_x, control2_y, context->scale)-endpoint)) {
+        context->contour->addEdge(msdfgen::EdgeHolder(context->position, hb_point2(control1_x, control1_y, context->scale), hb_point2(control2_x, control2_y, context->scale), endpoint));
+        context->position = endpoint;
+    }
 }
 
 static void populate_face(MatnTypeface *face) {
@@ -266,6 +343,12 @@ static void populate_face(MatnTypeface *face) {
 
     hb_blob_destroy(blob);
   }
+
+  face->msdfgen_funcs = hb_draw_funcs_create();
+  hb_draw_funcs_set_move_to_func(face->msdfgen_funcs, hb_move_to, face, nullptr);
+  hb_draw_funcs_set_line_to_func(face->msdfgen_funcs, hb_line_to, face, nullptr);
+  hb_draw_funcs_set_quadratic_to_func(face->msdfgen_funcs, hb_quadratic_to, face, nullptr);
+  hb_draw_funcs_set_cubic_to_func(face->msdfgen_funcs, hb_cubic_to, face, nullptr);
 }
 
 MatnResult matn_typeface_from_file(const char *path, int index,
@@ -796,6 +879,78 @@ MatnResult matn_rasterize_glyph(MatnFont *font, int32_t client_glyph_id,
   return MATN_SUCCESS;
 }
 
+static uint8_t to_byte(float value) {
+  return uint8_t(~int(255.5f-255.f*std::max(0.0f, std::min(1.0f, value))));
+}
+
+MatnResult matn_rasterize_glyph_msdf(MatnFont *font, int32_t client_glyph_id,
+                             uint32_t resolution, MatnBlob **out_blob) {
+  if (!font || !out_blob) {
+    return MATN_ERR_INVALID_ARGUMENT;
+  }
+  uint32_t glyph_id = static_cast<uint32_t>(client_glyph_id);
+
+  hb_glyph_extents_t extents;
+
+  if (!hb_font_get_glyph_extents(font->hb_font, glyph_id, &extents)) {
+    return MATN_ERR_RASTERIZATION_FAILED;
+  }
+
+  msdfgen::Shape output = { };
+
+  output.contours.clear();
+  output.setYAxisOrientation(msdfgen::Y_UPWARD);
+  MSDFDrawContext context = { };
+  context.scale = font->face->inv_upem;
+  context.shape = &output;
+
+  hb_font_draw_glyph(font->hb_font, glyph_id, font->face->msdfgen_funcs, &context);
+
+  if (!output.contours.empty() && output.contours.back().edges.empty()) {
+    output.contours.pop_back();
+  }
+
+  output.normalize();
+
+  msdfgen::edgeColoringSimple(output, 3);
+
+  msdfgen::Bitmap<float, 3> msdf(resolution, resolution);
+
+  msdfgen::SDFTransformation t( msdfgen::Projection(resolution, msdfgen::Vector2(0, 0)), msdfgen::Range(0.125));
+
+  msdfgen::generateMSDF(msdf, output, t);
+
+  msdfgen::BitmapConstSection<float, 3> section = msdf.getConstSection(0, 0, resolution, resolution);
+
+  auto blob = std::make_unique<MatnBlob>();
+  blob->width = resolution;
+  blob->height = resolution;
+  blob->stride = resolution * 4;
+  blob->top = extents.y_bearing * font->face->inv_upem * INV_FONT_SCALE;
+  blob->left = extents.x_bearing * font->face->inv_upem * INV_FONT_SCALE;
+  blob->format = MATN_PIXEL_FORMAT_RGBA32;
+
+  blob->pixels.resize(static_cast<size_t>(resolution) *
+                       static_cast<size_t>(resolution) * 4);
+  for (uint32_t y = 0; y < resolution; ++y) {
+    for (uint32_t x = 0; x < resolution; ++x) {
+      const float *src = section(x, y);
+
+      size_t dstIndex =
+          (static_cast<size_t>(y) * resolution + x) * 4;
+
+      blob->pixels[dstIndex + 0] = to_byte(src[0]);
+      blob->pixels[dstIndex + 1] = to_byte(src[1]);
+      blob->pixels[dstIndex + 2] = to_byte(src[2]);
+      blob->pixels[dstIndex + 3] = 0xFF;
+    }
+  }
+
+  *out_blob = blob.release();
+
+  return MATN_SUCCESS;
+}
+
 void matn_blob_destroy(MatnBlob *blob) { delete blob; }
 
 const uint8_t *matn_blob_get_data(const MatnBlob *blob) {
@@ -804,8 +959,8 @@ const uint8_t *matn_blob_get_data(const MatnBlob *blob) {
 int matn_blob_get_width(const MatnBlob *blob) { return blob ? blob->width : 0; }
 int matn_blob_get_height(const MatnBlob *blob) { return blob ? blob->height : 0; }
 int matn_blob_get_stride(const MatnBlob *blob) { return blob ? blob->stride : 0; }
-int matn_blob_get_left(const MatnBlob *blob) { return blob ? blob->left : 0; }
-int matn_blob_get_top(const MatnBlob *blob) { return blob ? blob->top : 0; }
+float matn_blob_get_left(const MatnBlob *blob) { return blob ? blob->left : 0; }
+float matn_blob_get_top(const MatnBlob *blob) { return blob ? blob->top : 0; }
 MatnPixelFormat matn_blob_get_format(const MatnBlob *blob) {
   return blob ? blob->format : MATN_PIXEL_FORMAT_A8;
 }

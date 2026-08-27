@@ -27,7 +27,7 @@ typedef enum {
   MATN_DIRECTION_BTT = 7
 } MatnDirection;
 
-typedef enum { MATN_PIXEL_FORMAT_A8, MATN_PIXEL_FORMAT_BGRA32 } MatnPixelFormat;
+typedef enum { MATN_PIXEL_FORMAT_A8, MATN_PIXEL_FORMAT_BGRA32, MATN_PIXEL_FORMAT_RGBA32 } MatnPixelFormat;
 
 typedef enum {
   MATN_GPU_LANGUAGE_GLSL,
@@ -76,8 +76,8 @@ typedef struct {
   int width;
   int height;
   int stride;
-  int left;
-  int top;
+  float left;
+  float top;
   MatnPixelFormat format;
 } MatnBlobView;
 
@@ -165,6 +165,9 @@ const char *matn_gpu_get_fragment(MatnGPU_LANGUAGE language);
 MatnResult matn_rasterize_glyph(MatnFont *font, int32_t glyph_id,
                              uint32_t size_px, MatnBlob **out_blob);
 
+MatnResult matn_rasterize_glyph_msdf(MatnFont *font, int32_t glyph_id,
+                             uint32_t resolution, MatnBlob **out_blob);
+
 void matn_blob_destroy(MatnBlob *blob);
 
 /* Read-Only */
@@ -172,9 +175,9 @@ const uint8_t *matn_blob_get_data(const MatnBlob *blob);
 int matn_blob_get_width(const MatnBlob *blob);
 int matn_blob_get_height(const MatnBlob *blob);
 int matn_blob_get_stride(const MatnBlob *blob);
-int matn_blob_get_left(
+float matn_blob_get_left(
     const MatnBlob *blob);
-int matn_blob_get_top(const MatnBlob *blob);
+float matn_blob_get_top(const MatnBlob *blob);
 MatnPixelFormat matn_blob_get_format(const MatnBlob *blob);
 
 void matn_cleanup(void);
