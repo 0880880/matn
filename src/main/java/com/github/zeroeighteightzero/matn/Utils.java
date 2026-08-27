@@ -46,8 +46,9 @@ public class Utils {
      * @param size the (stepped) rasterization size
      * @return a hash combining the font state, glyph identifier, and size
      */
-    public static long glyphHashWithSize(Font font, long glyphID, int size) {
+    public static long glyphHashWithSize(Font font, long glyphID, int size, boolean msdf) {
         long h = glyphHash(font, glyphID);
+        h = 31L * h + (msdf ? 1231L : 1237L);
         h = 31L * h + size;
         return h;
     }
