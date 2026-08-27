@@ -3,6 +3,7 @@ package com.github.zeroeighteightzero.matn;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
@@ -281,24 +282,36 @@ public class GlyphAtlas implements Disposable {
      * @param font the typeface containing the glyph
      * @param glyphID the identifier of the glyph to retrieve
      * @param size the requested glyph size
+     * @param msdf multi-channel signed distance field
      * @return the cached or newly packed glyph
      * @throws RuntimeException if the glyph is larger than a complete atlas page
      */
-    public Glyph getGlyph(Font font, int glyphID, int size) {
-        int steppedSize = Utils.getFontSize(size);
-        long hash = Utils.glyphHashWithSize(font, glyphID, steppedSize);
-        if (glyphMap.containsKey(hash)) {
-            return glyphMap.get(hash);
+    public Glyph getGlyph(Font font, int glyphID, int size, boolean msdf) {
+        Font.GlyphRasterData rasterData;
+        int realSize = size;
+        long hash;
+        if (msdf) {
+            hash = Utils.glyphHashWithSize(font, glyphID, realSize, true);
+            if (glyphMap.containsKey(hash)) {
+                return glyphMap.get(hash);
+            }
+            rasterData = font.rasterizeMTSDF(glyphID, size);
+        } else {
+            realSize = Utils.getFontSize(size);
+            hash = Utils.glyphHashWithSize(font, glyphID, realSize, false);
+            if (glyphMap.containsKey(hash)) {
+                return glyphMap.get(hash);
+            }
+            rasterData = font.rasterize(glyphID, realSize);
         }
-        Font.GlyphRasterData rasterData = font.rasterize(glyphID, steppedSize);
         Pixmap pixmap = rasterData.pixmap;
-        int left = rasterData.left, top = rasterData.top;
+        float left = rasterData.left, top = rasterData.top;
         int width = pixmap.getWidth(), height = pixmap.getHeight();
 
         // Glyphs with zero area (e.g., space) don't consume atlas space.
         if (width == 0 || height == 0) {
             pixmap.dispose();
-            Glyph glyph = new Glyph(this, glyphID, steppedSize, 0, 0, 0, 0, 0, top, left);
+            Glyph glyph = new Glyph(glyphID, realSize, 0, 0, 0, 0, 0, top, left, msdf);
             glyphMap.put(hash, glyph);
             return glyph;
         }
@@ -318,8 +331,8 @@ public class GlyphAtlas implements Disposable {
                 page.placed.add(new Page.Rect(x, y, width, height));
                 page.place(pixmap, x, y);
 
-                Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.indexOf(page, true),
-                        x, y, width, height, top, left);
+                Glyph glyph = new Glyph(glyphID, realSize, pages.indexOf(page, true),
+                        x, y, width, height, top, left, msdf);
                 glyphMap.put(hash, glyph);
                 pixmap.dispose();
                 return glyph;
@@ -332,7 +345,7 @@ public class GlyphAtlas implements Disposable {
         newPage.placed.add(new Page.Rect(0, 0, width, height));
         newPage.place(pixmap, 0, 0);
 
-        Glyph glyph = new Glyph(this, glyphID, steppedSize, pages.size - 1, 0, 0, width, height, top, left);
+        Glyph glyph = new Glyph(glyphID, realSize, pages.size - 1, 0, 0, width, height, top, left, msdf);
         glyphMap.put(hash, glyph);
         pixmap.dispose();
         return glyph;

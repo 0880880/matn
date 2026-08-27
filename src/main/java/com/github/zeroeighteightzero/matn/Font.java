@@ -397,9 +397,9 @@ public class Font implements Disposable {
 
     public static class GlyphRasterData {
         public final Pixmap pixmap;
-        public final int top, left;
+        public final float top, left;
 
-        public GlyphRasterData(Pixmap pixmap, int top, int left) {
+        public GlyphRasterData(Pixmap pixmap, float top, float left) {
             this.pixmap = pixmap;
             this.top = top;
             this.left = left;
@@ -532,6 +532,30 @@ public class Font implements Disposable {
         }
 
         GlyphRasterData rasterData = new GlyphRasterData(pixmap, Matn.matn_blob_get_top(blob) - outlineWidth * 2, Matn.matn_blob_get_left(blob) - outlineWidth * 2);
+
+        Matn.matn_blob_destroy(blob);
+
+        return rasterData;
+    }
+
+    public GlyphRasterData rasterizeMTSDF(int glyphID, int resolution) {
+        PointerPointer<MatnBlob.MatnBlobPointer> ptr = new PointerPointer<>(MatnBlob.MatnBlobPointer::new);
+        Matn.matn_rasterize_glyph_mtsdf(mtFont, glyphID, resolution, ptr);
+        MatnBlob.MatnBlobPointer blob = ptr.getValue();
+        UBytePointer data = Matn.matn_blob_get_data(blob);
+        int width = Matn.matn_blob_get_width(blob);
+        int height = Matn.matn_blob_get_height(blob);
+        Pixmap pixmap;
+        // MATN_PIXEL_FORMAT_RGBA32
+        pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        if (width * height != 0) {
+            ByteBuffer pixels = pixmap.getPixels();
+            long pixelsPtr = BufferUtils.getUnsafeBufferAddress(pixels);
+            CHandler.memcpy(pixelsPtr, data.getPointer(), (long) width * height * 4);
+            pixels.flip();
+        }
+
+        GlyphRasterData rasterData = new GlyphRasterData(pixmap, Matn.matn_blob_get_top(blob), Matn.matn_blob_get_left(blob));
 
         Matn.matn_blob_destroy(blob);
 

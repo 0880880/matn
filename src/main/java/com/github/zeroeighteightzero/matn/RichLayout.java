@@ -16,6 +16,7 @@ public class RichLayout {
     public Color baseColor = Color.WHITE;
     public int outlineWidth = 1;
     public Color outlineColor = Color.BLACK;
+    public boolean msdf = false;
 
     public Array<Run> runs = new Array<>(4);
 
@@ -295,7 +296,7 @@ public class RichLayout {
             run.x = penX;
 
             for (int j = 0; j < shape.advances.length; ++j) {
-                Glyph glyph = font.atlas.getGlyph(font, shape.glyphIDs[j], fontSize);
+                Glyph glyph = font.atlas.getGlyph(font, shape.glyphIDs[j], fontSize, msdf);
                 float adv = shape.advances[j].x * fontSize * sx;
                 run.add(glyph);
                 run.clusters.add(shape.clusters[j]);
