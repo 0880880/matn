@@ -9,7 +9,6 @@ A font rasterization and shaping library for libGDX using [HarfBuzz](https://git
 ---
 
 ## Todo
-- MSDF glyph rendering
 - Text wrapping
 - GPU text richLayout
 - Padding for atlas
