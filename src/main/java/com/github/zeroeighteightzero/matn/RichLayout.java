@@ -298,6 +298,11 @@ public class RichLayout {
             run.x = penX;
             run.y = penY;
 
+            float lineHeight = font.getLineHeight(fontSize);
+
+            height = lineHeight;
+            width = 0;
+
             for (int j = 0; j < shape.advances.length; ++j) {
                 run.width = penX - run.x;
                 boolean isWrap = wrap && maxWidth > 0 && penX + shape.advances[j].x * fontSize * sx > maxWidth;
@@ -307,7 +312,8 @@ public class RichLayout {
                     run = new Run(pEnd - pStart, flag, col, sx, sy);
                     run.font = font;
                     penX = 0;
-                    penY -= font.getLineHeight(fontSize);
+                    penY -= lineHeight;
+                    height += lineHeight;
                     run.x = penX;
                     run.y = penY;
                     if (isNewline) {
@@ -330,6 +336,7 @@ public class RichLayout {
                 offsets.add(ox, oy);
                 advances.add(adv);
                 penX += adv;
+                width = Math.max(width, penX);
             }
             run.width = penX - run.x;
 
