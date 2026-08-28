@@ -317,23 +317,26 @@ public class GlyphAtlas implements Disposable {
             return glyph;
         }
 
+        int packedWidth = width + padding * 2;
+        int packedHeight = height + padding * 2;
+
         // Glyph larger than a whole page cannot be packed.
-        if (width > pageSize || height > pageSize) {
+        if (packedWidth > pageSize || packedHeight > pageSize) {
             pixmap.dispose();
             throw new RuntimeException("Glyph too large for page size: "
-                    + width + "x" + height + " > " + pageSize);
+                    + packedWidth + "x" + packedHeight + " > " + pageSize);
         }
 
         // Try Bottom-Left on every existing page.
         for (Page page : pages) {
-            int[] pos = findBottomLeft(page, width, height);
+            int[] pos = findBottomLeft(page, packedWidth, packedHeight);
             if (pos != null) {
                 int x = pos[0], y = pos[1];
-                page.placed.add(new Page.Rect(x + padding, y + padding, width + padding * 2, height + padding * 2));
+                page.placed.add(new Page.Rect(x, y, packedWidth, packedHeight));
                 page.place(pixmap, x + padding, y + padding);
 
                 Glyph glyph = new Glyph(glyphID, realSize, pages.indexOf(page, true),
-                        x, y, width, height, top, left, msdf);
+                        x + padding, y + padding, width, height, top, left, msdf);
                 glyphMap.put(hash, glyph);
                 pixmap.dispose();
                 return glyph;
@@ -343,10 +346,10 @@ public class GlyphAtlas implements Disposable {
         // No page could accommodate the glyph → create a new page; place at (0, 0).
         Page newPage = new Page(pageSize, format);
         pages.add(newPage);
-        newPage.placed.add(new Page.Rect(padding, padding, width + padding * 2, height + padding * 2));
+        newPage.placed.add(new Page.Rect(0, 0, packedWidth, packedHeight));
         newPage.place(pixmap, padding, padding);
 
-        Glyph glyph = new Glyph(glyphID, realSize, pages.size - 1, 0, 0, width, height, top, left, msdf);
+        Glyph glyph = new Glyph(glyphID, realSize, pages.size - 1, padding, padding, width, height, top, left, msdf);
         glyphMap.put(hash, glyph);
         pixmap.dispose();
         return glyph;
