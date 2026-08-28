@@ -65,9 +65,9 @@ tasks.withType(JavaCompile) {
     }
 }
 
-tasks.register('runTestMain', JavaExec) {
+tasks.register('fontViewer', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'com.github.zeroeighteightzero.matn.Main'
+    mainClass = 'com.github.zeroeighteightzero.matn.FontViewer'
 }
 
 jnigen {
