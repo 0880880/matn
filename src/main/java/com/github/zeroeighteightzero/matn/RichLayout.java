@@ -336,6 +336,8 @@ public class RichLayout {
             runs.add(run);
         }
 
+        p.dispose();
+
     }
 
     public void draw(Batch batch, float x, float y) {
