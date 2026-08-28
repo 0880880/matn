@@ -14,9 +14,9 @@ public class Glyph {
     public final int page;
     public final int x, y, width, height;
     public final float top, left;
-    public final boolean mtsdf;
+    public final boolean msdf;
 
-    Glyph(int glyphID, int size, int page, int x, int y, int width, int height, float top, float left, boolean mtsdf) {
+    Glyph(int glyphID, int size, int page, int x, int y, int width, int height, float top, float left, boolean msdf) {
         this.glyphID = glyphID;
         this.size = size;
         this.page = page;
@@ -26,6 +26,6 @@ public class Glyph {
         this.height = height;
         this.top = top;
         this.left = left;
-        this.mtsdf = mtsdf;
+        this.msdf = msdf;
     }
 }
