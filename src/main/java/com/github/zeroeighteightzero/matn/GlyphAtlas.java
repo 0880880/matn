@@ -114,6 +114,7 @@ public class GlyphAtlas implements Disposable {
     public final Pixmap.Format format;
     public final TextureRegion pixel;
     public int padding = 0;
+    public boolean steppedFontSize = false;
 
     private static final int GPU_TEXTURE_WIDTH = 512;
     private static final int TEXEL_SIZE = 8;
@@ -297,7 +298,7 @@ public class GlyphAtlas implements Disposable {
             }
             rasterData = font.rasterizeMTSDF(glyphID, size);
         } else {
-            realSize = Utils.getFontSize(size);
+            realSize = steppedFontSize ? Utils.getFontSize(size) : size;
             hash = Utils.glyphHashWithSize(font, glyphID, realSize, false);
             if (glyphMap.containsKey(hash)) {
                 return glyphMap.get(hash);
