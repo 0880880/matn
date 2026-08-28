@@ -14,6 +14,10 @@ public class RichLayout {
     public int outlineWidth = 1;
     public Color outlineColor = Color.BLACK;
     public boolean msdf = false;
+    public float width, height;
+
+    public float maxWidth;
+    public boolean wrap = false;
 
     public Array<Run> runs = new Array<>(4);
 
@@ -267,6 +271,7 @@ public class RichLayout {
         Paragraph p = new Paragraph(text);
 
         float penX = 0;
+        float penY = 0;
 
         font.outlineColor = outlineColor;
         for (int i = 0; i < colors.size; ++i) {
@@ -291,8 +296,24 @@ public class RichLayout {
             Run run = new Run(pEnd - pStart, flag, col, sx, sy);
             run.font = font;
             run.x = penX;
+            run.y = penY;
 
             for (int j = 0; j < shape.advances.length; ++j) {
+                run.width = penX - run.x;
+                boolean isWrap = wrap && maxWidth > 0 && penX + shape.advances[j].x * fontSize * sx > maxWidth;
+                boolean isNewline = text.charAt((int) shape.clusters[j]) == '\n';
+                if (isWrap || isNewline) {
+                    runs.add(run);
+                    run = new Run(pEnd - pStart, flag, col, sx, sy);
+                    run.font = font;
+                    penX = 0;
+                    penY -= font.getLineHeight(fontSize);
+                    run.x = penX;
+                    run.y = penY;
+                    if (isNewline) {
+                        continue;
+                    }
+                }
                 Glyph glyph = font.atlas.getGlyph(font, shape.glyphIDs[j], fontSize, msdf);
                 float adv = shape.advances[j].x * fontSize * sx;
                 run.add(glyph);
