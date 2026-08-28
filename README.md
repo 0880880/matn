@@ -39,6 +39,3 @@ font.dispose();
 atlas.dispose();
 face.dispose();
 ```
-
-## Todo
-- Padding for atlas
