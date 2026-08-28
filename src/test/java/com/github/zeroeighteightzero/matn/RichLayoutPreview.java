@@ -15,18 +15,18 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-public class Main implements ApplicationListener {
+public class RichLayoutPreview implements ApplicationListener {
 
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2);
-        new Lwjgl3Application(new Main(), configuration);
+        new Lwjgl3Application(new RichLayoutPreview(), configuration);
     }
 
     SpriteBatch batch;
     OrthographicCamera camera;
     ScreenViewport viewport;
-    GPUGlyphBatch gpuBatch;
+    SimpleGPUGlyphBatch gpuBatch;
 
     GlyphAtlas atlas;
 
@@ -64,7 +64,7 @@ public class Main implements ApplicationListener {
 
         face = new Typeface("Inter/Inter-VariableFont_opsz,wght.ttf");
 
-        gpuBatch = new GPUGlyphBatch();
+        gpuBatch = new SimpleGPUGlyphBatch();
 
         font = new Font(face, atlas);
         font.outlineColor = Color.RED;
@@ -80,6 +80,8 @@ public class Main implements ApplicationListener {
         richLayout.baseColor = Color.WHITE;
         richLayout.outlineColor = Color.ORANGE;
         richLayout.outlineWidth = 2;
+        richLayout.maxWidth = 200;
+        richLayout.wrap = true;
         richLayout.markup();
 
         Gdx.input.setInputProcessor(new InputProcessor() {
