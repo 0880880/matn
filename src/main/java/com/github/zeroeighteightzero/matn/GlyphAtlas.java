@@ -445,6 +445,18 @@ public class GlyphAtlas implements Disposable {
         a.size = write;
     }
 
+    public void clear() {
+        glyphMap.clear();
+        gpuGlyphMap.clear();
+        for (GPUPage page : gpuPages) {
+            page.index = 0;
+        }
+        for (Page page : pages) {
+            page.placed.clear();
+            page.place(new Pixmap(pageSize, pageSize, page.format), 0, 0);
+        }
+    }
+
     /**
      * Releases all page textures and GPU resources owned by this atlas.
      */
