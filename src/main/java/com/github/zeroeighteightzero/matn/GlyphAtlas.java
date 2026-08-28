@@ -3,7 +3,6 @@ package com.github.zeroeighteightzero.matn;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
@@ -114,6 +113,7 @@ public class GlyphAtlas implements Disposable {
     /** The pixel format used by atlas textures. */
     public final Pixmap.Format format;
     public final TextureRegion pixel;
+    public int padding = 0;
 
     private static final int GPU_TEXTURE_WIDTH = 512;
     private static final int TEXEL_SIZE = 8;
@@ -328,8 +328,8 @@ public class GlyphAtlas implements Disposable {
             int[] pos = findBottomLeft(page, width, height);
             if (pos != null) {
                 int x = pos[0], y = pos[1];
-                page.placed.add(new Page.Rect(x, y, width, height));
-                page.place(pixmap, x, y);
+                page.placed.add(new Page.Rect(x + padding, y + padding, width + padding * 2, height + padding * 2));
+                page.place(pixmap, x + padding, y + padding);
 
                 Glyph glyph = new Glyph(glyphID, realSize, pages.indexOf(page, true),
                         x, y, width, height, top, left, msdf);
@@ -342,8 +342,8 @@ public class GlyphAtlas implements Disposable {
         // No page could accommodate the glyph → create a new page; place at (0, 0).
         Page newPage = new Page(pageSize, format);
         pages.add(newPage);
-        newPage.placed.add(new Page.Rect(0, 0, width, height));
-        newPage.place(pixmap, 0, 0);
+        newPage.placed.add(new Page.Rect(padding, padding, width + padding * 2, height + padding * 2));
+        newPage.place(pixmap, padding, padding);
 
         Glyph glyph = new Glyph(glyphID, realSize, pages.size - 1, 0, 0, width, height, top, left, msdf);
         glyphMap.put(hash, glyph);
