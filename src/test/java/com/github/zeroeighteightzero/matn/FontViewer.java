@@ -135,6 +135,7 @@ public class FontViewer implements ApplicationListener, Lwjgl3WindowListener {
         guiViewport = new ScreenViewport();
 
         atlas = new GlyphAtlas(512, Pixmap.Format.RGBA8888);
+        atlas.padding = 1;
 
         face = new Typeface("Inter/Inter-VariableFont_opsz,wght.ttf");
 
