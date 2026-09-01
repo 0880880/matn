@@ -8,8 +8,14 @@ A font rasterization and shaping library for libGDX using [HarfBuzz](https://git
 
 ## Usage
 
+### Core
 ```gradle
-implementation "com.github.zeroeighteightzero:matn:0.3.1"
+implementation "com.github.zeroeighteightzero:matn:0.3.4"
+```
+
+### Desktop
+```gradle
+implementation "com.github.zeroeighteightzero:matn:0.3.4:natives-desktop"
 ```
 
 ```java
