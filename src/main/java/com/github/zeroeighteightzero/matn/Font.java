@@ -538,9 +538,9 @@ public class Font implements Disposable {
         return rasterData;
     }
 
-    public GlyphRasterData rasterizeMTSDF(int glyphID, int resolution) {
+    public GlyphRasterData rasterizeMSDF(int glyphID, int resolution) {
         PointerPointer<MatnBlob.MatnBlobPointer> ptr = new PointerPointer<>(MatnBlob.MatnBlobPointer::new);
-        Matn.matn_rasterize_glyph_mtsdf(mtFont, glyphID, resolution, ptr);
+        Matn.matn_rasterize_glyph_msdf(mtFont, glyphID, resolution, ptr);
         MatnBlob.MatnBlobPointer blob = ptr.getValue();
         UBytePointer data = Matn.matn_blob_get_data(blob);
         int width = Matn.matn_blob_get_width(blob);

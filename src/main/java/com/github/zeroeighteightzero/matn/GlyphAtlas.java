@@ -296,7 +296,7 @@ public class GlyphAtlas implements Disposable {
             if (glyphMap.containsKey(hash)) {
                 return glyphMap.get(hash);
             }
-            rasterData = font.rasterizeMTSDF(glyphID, size);
+            rasterData = font.rasterizeMSDF(glyphID, size);
         } else {
             realSize = steppedFontSize ? Utils.getFontSize(size) : size;
             hash = Utils.glyphHashWithSize(font, glyphID, realSize, false);

@@ -492,15 +492,15 @@ static jclass cxxExceptionClass = NULL;
     	return 0;
     */
 
-    public static MatnResult matn_rasterize_glyph_mtsdf(MatnFont.MatnFontPointer font, int glyph_id, long resolution, PointerPointer<MatnBlob.MatnBlobPointer> out_blob) {
-        return MatnResult.getByIndex((int) matn_rasterize_glyph_mtsdf_internal(font.getPointer(), glyph_id, resolution, out_blob.getPointer()));
+    public static MatnResult matn_rasterize_glyph_msdf(MatnFont.MatnFontPointer font, int glyph_id, long resolution, PointerPointer<MatnBlob.MatnBlobPointer> out_blob) {
+        return MatnResult.getByIndex((int) matn_rasterize_glyph_msdf_internal(font.getPointer(), glyph_id, resolution, out_blob.getPointer()));
     }
 
-    public static native int matn_rasterize_glyph_mtsdf_internal(long font, int glyph_id, long resolution, long out_blob);/*
+    public static native int matn_rasterize_glyph_msdf_internal(long font, int glyph_id, long resolution, long out_blob);/*
     	HANDLE_JAVA_EXCEPTION_START()
     	CHECK_AND_THROW_C_TYPE(env, uint32_t, resolution, 2, return 0);
     	CHECK_AND_THROW_C_TYPE(env, int32_t, glyph_id, 1, return 0);
-    	return (jint)matn_rasterize_glyph_mtsdf((MatnFont *)font, (int32_t)glyph_id, (uint32_t)resolution, (MatnBlob **)out_blob);
+    	return (jint)matn_rasterize_glyph_msdf((MatnFont *)font, (int32_t)glyph_id, (uint32_t)resolution, (MatnBlob **)out_blob);
     	HANDLE_JAVA_EXCEPTION_END()
     	return 0;
     */
