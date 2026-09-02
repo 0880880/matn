@@ -19,6 +19,7 @@
 #define INV_FONT_SCALE (1.0f / (float)FONT_SCALE)
 
 static hb_gpu_draw_t *g_hb_gpu_draw;
+static hb_gpu_paint_t *g_hb_gpu_paint;
 static hb_raster_draw_t *g_hb_raster_draw;
 static hb_raster_paint_t *g_hb_raster_paint;
 
@@ -26,6 +27,14 @@ static hb_gpu_draw_t *get_hb_gpu_draw() {
   static hb_gpu_draw_t *s = []() {
     g_hb_gpu_draw = hb_gpu_draw_create_or_fail();
     return g_hb_gpu_draw;
+  }();
+  return s;
+}
+
+static hb_gpu_paint_t *get_hb_gpu_paint() {
+  static hb_gpu_paint_t *s = []() {
+    g_hb_gpu_paint = hb_gpu_paint_create_or_fail();
+    return g_hb_gpu_paint;
   }();
   return s;
 }
