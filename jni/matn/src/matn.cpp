@@ -694,16 +694,29 @@ MatnResult matn_gpu_draw_glyph(MatnFont *font, int32_t client_glyph_id, MatnGPU_
   }
   uint32_t glyph_id = static_cast<uint32_t>(client_glyph_id);
 
-  hb_gpu_draw_t *draw = get_hb_gpu_draw();
-
-  if (font->hb_gpu_blob) {
-    hb_gpu_draw_recycle_blob(draw, font->hb_gpu_blob);
-  }
-
   hb_glyph_extents_t extents;
 
-  hb_gpu_draw_glyph(draw, font->hb_font, glyph_id);
-  font->hb_gpu_blob = hb_gpu_draw_encode(draw, &extents);
+  bool is_color = glyph_has_color(font, glyph_id);
+
+  if (is_color) {
+    hb_gpu_paint_t *paint = get_hb_gpu_paint();
+
+    if (font->hb_gpu_blob) {
+      hb_gpu_paint_recycle_blob(paint, font->hb_gpu_blob);
+    }
+
+    hb_gpu_paint_glyph(paint, font->hb_font, glyph_id);
+    font->hb_gpu_blob = hb_gpu_paint_encode(paint, &extents);
+  } else {
+    hb_gpu_draw_t *draw = get_hb_gpu_draw();
+
+    if (font->hb_gpu_blob) {
+      hb_gpu_draw_recycle_blob(draw, font->hb_gpu_blob);
+    }
+
+    hb_gpu_draw_glyph(draw, font->hb_font, glyph_id);
+    font->hb_gpu_blob = hb_gpu_draw_encode(draw, &extents);
+  }
 
   if (!*out_blob) {
     auto blob = std::make_unique<MatnGPU_Blob>();
