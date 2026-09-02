@@ -684,6 +684,10 @@ const MatnBufferView *matn_shape_view_buffer(const MatnFont *font) {
   return &font->buffer_view;
 }
 
+bool glyph_has_color(MatnFont *font, uint32_t glyph_id) {
+  return hb_ot_color_glyph_has_paint(font->face->hb_face, glyph_id);
+}
+
 MatnResult matn_gpu_draw_glyph(MatnFont *font, int32_t client_glyph_id, MatnGPU_Blob **out_blob) {
   if (!font || !out_blob) {
     return MATN_ERR_INVALID_ARGUMENT;
@@ -832,8 +836,7 @@ MatnResult matn_rasterize_glyph(MatnFont *font, int32_t client_glyph_id,
     return MATN_ERR_RASTERIZATION_FAILED;
   }
 
-  bool is_color = hb_ot_color_glyph_has_paint(font->face->hb_face, glyph_id) ||
-                  hb_ot_color_has_layers(font->face->hb_face);
+  bool is_color = glyph_has_color(font, glyph_id);
 
   float scale = font->face->upem / ((float) size_px);
 
